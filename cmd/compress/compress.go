@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,40 +18,53 @@ var (
 func init() {
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be compressed")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
-}
-
-func main() {
 	flag.Parse()
-
-	fmt.Println(regionID)
 
 	if regionID == "" {
 		log.Fatalln("compress: error: regionID is empty")
 	}
+}
 
-	datafilePath := "database/" + regionID
-	info, err := os.Stat(datafilePath)
-	if err != nil {
-		log.Fatalf("compress: error: directory for %s not found: %v\n", regionID, err)
+func main() {
+	_, err := os.Stat("generated/")
+	if os.IsNotExist(err) {
+		err = os.Mkdir("generated", 0755)
+		if err != nil {
+			log.Fatalf("compress: error creating generated directory: %v\n", err)
+		}
+	}
+
+	zipFile, err := os.Create("generated/" + regionID + ".zip")
+	defer zipFile.Close()
+
+	os.Chdir("database/")
+	wd, _ := os.Getwd()
+	fmt.Println("compress: changed working directory to", wd)
+
+	_, err = os.Stat(regionID)
+	if os.IsNotExist(err) {
+		log.Fatalf("compress: datafile directory for %s doesn't exist", regionID)
+	}
+
+	info, err := os.Stat(regionID)
+	if os.IsNotExist(err) {
+		log.Fatalf("compress: error: directory for region %s doesn't exist\n", regionID)
 	}
 
 	if !info.IsDir() {
 		log.Fatalf("compress: error: datafile %s is not a directory\n", regionID)
 	}
 
-	outputFile, err := os.Create(regionID + ".zip")
-	if err != nil {
-		log.Fatalf("compress: error: failed to create a zip output file %s: %v\n", regionID, err)
-	}
-	defer outputFile.Close()
-
-	w := zip.NewWriter(outputFile)
+	w := zip.NewWriter(zipFile)
 	defer w.Close()
 
 	i := 0
 	walker := func(path string, fileInfo os.FileInfo, err error) error {
 		if fileInfo.Name() == ".DS_Store" {
-			fmt.Println("compress: encountered DS_Store")
+			return nil
+		}
+
+		if fileInfo.IsDir() {
 			return nil
 		}
 
@@ -60,16 +74,25 @@ func main() {
 		}
 		defer file.Close()
 
+		writer, err := w.Create(path)
+		if err != nil {
+			log.Fatalf("compress: error creating a file in zip archive: %v\n", err)
+		}
+
 		fmt.Println(fmt.Sprint(i), path)
+		_, err = io.Copy(writer, file)
+		if err != nil {
+			log.Fatalf("compress: error copying file: %v\n", err)
+		}
 
 		i++
-
 		return nil
 	}
 
-	err = filepath.Walk(datafilePath, walker)
+	err = filepath.Walk(regionID, walker)
 	if err != nil {
-		log.Fatalf("compress: error while walking %s: %v\n", datafilePath, err)
+		log.Fatalf("compress: error while walking %s: %v\n", regionID, err)
 	}
 
+	os.Chdir("..")
 }
