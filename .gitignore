@@ -1,0 +1,8 @@
+.DS_Store
+database/
+compress
+!compress/
+generate
+!generate
+upload
+!generate/
