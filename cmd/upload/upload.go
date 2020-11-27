@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -21,6 +22,7 @@ const (
 var (
 	regionID string
 	verbose  bool
+	test     bool
 )
 
 var (
@@ -33,11 +35,7 @@ func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
-	flag.Parse()
-
-	if regionID == "" {
-		log.Fatalln("compress: error: regionID is empty")
-	}
+	flag.BoolVar(&test, "test", true, "whether to upload to test collections in Firestore")
 
 	opt := option.WithCredentialsFile("./key.json")
 
@@ -54,13 +52,18 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+
+	if regionID == "" {
+		log.Fatalln("compress: error: regionID is empty")
+	}
+
 	zipFilePath := "compressed/" + regionID + ".zip"
 	fileInfo, err := os.Stat(zipFilePath)
 	if os.IsNotExist(err) {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
 
-	IsTestVersion := false // TODO:
 	regionName := "TODO"
 
 	featured, err := parseFeatured(regionID)
@@ -68,30 +71,41 @@ func main() {
 		log.Fatalln("upload: error parsing featured:", err)
 	}
 
-	storagePrefix := regionID + "Test"
+	storagePrefix := regionID
+	datafilesCollection := "datafiles"
+	if test {
+		storagePrefix += "Test"
+		datafilesCollection += "Test"
+	}
 
 	fileURL := fmt.Sprintf("%s/%s/%s?alt=media", appspotURL, storagePrefix, fileInfo.Name())
 	thumbURL := fmt.Sprintf("%s/%s/thumb.webp?alt=media", appspotURL, storagePrefix)
 	thumbMiniURL := fmt.Sprintf("%s/%s/thumb_mini.webp?alt=media", appspotURL, storagePrefix)
 
-	thumbBlurhash := "TODO"
+	thumbBlurhash, err := makeThumbBlurhash(regionID)
+	if err != nil {
+		log.Fatalln("upload: error making a blurhash:", err)
+	}
+
+	fmt.Printf(thumbBlurhash)
+	os.Exit(69)
 
 	meta := Datafile{
 		Available:        true,
 		Featured:         featured,
 		FileSize:         fileInfo.Size(),
-		FileURL:          fileURL,
+		FileURL:          url.QueryEscape(fileURL),
 		LastUploadedTime: time.Time{},
 		Position:         1, // TODO: Handle position
 		RegionID:         regionID,
 		RegionName:       regionName,
-		IsTestVersion:    IsTestVersion,
+		IsTestVersion:    test,
 		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     thumbMiniURL,
-		ThumbURL:         thumbURL,
+		ThumbMiniURL:     url.QueryEscape(thumbMiniURL),
+		ThumbURL:         url.QueryEscape(thumbURL),
 	}
 
-	_, err = firestoreClient.Collection("datafilesTest").Doc(regionID).Set(ctx, meta)
+	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(ctx, meta)
 	if err != nil {
 		log.Fatalf("error updating document %#v in /datafiles: %v\n", regionID, err)
 	}
