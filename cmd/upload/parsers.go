@@ -10,8 +10,24 @@ import (
 	"github.com/bbrks/go-blurhash"
 )
 
+func parseName(regionID string, lang string) (name string, err error) {
+	file, err := os.Open("database/" + regionID + "/meta/" + lang + "/name.txt")
+	if err != nil {
+		return "", err
+	}
+
+	contents, err := ioutil.ReadAll(file)
+	if err != nil {
+		return "", err
+	}
+
+	name = string(contents)
+
+	return
+}
+
 func makeThumbBlurhash(regionID string) (blur string, err error) {
-	file, err := os.Open("database/" + regionID + "/meta/thumb.webp")
+	file, err := os.Open("database/" + regionID + "/meta/thumb_mini.webp")
 	if err != nil {
 		return "", err
 	}

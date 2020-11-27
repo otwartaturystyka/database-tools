@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/url"
 	"os"
@@ -21,12 +22,12 @@ const (
 
 var (
 	regionID string
+	position int
 	verbose  bool
 	test     bool
 )
 
 var (
-	ctx             = context.Background()
 	firestoreClient *firestore.Client
 	storageClient   *storage.Client
 )
@@ -34,18 +35,19 @@ var (
 func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
-	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
+	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")
 	flag.BoolVar(&test, "test", true, "whether to upload to test collections in Firestore")
+	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
 
 	opt := option.WithCredentialsFile("./key.json")
 
 	var err error
-	firestoreClient, err = firestore.NewClient(ctx, "discoverrudy", opt)
+	firestoreClient, err = firestore.NewClient(context.Background(), "discoverrudy", opt)
 	if err != nil {
 		log.Fatalf("upload: error initializing firestore: %v\n", err)
 	}
 
-	storageClient, err = storage.NewClient(ctx, opt)
+	storageClient, err = storage.NewClient(context.Background(), opt)
 	if err != nil {
 		log.Fatalf("upload: error initializing storage: %v\n", err)
 	}
@@ -82,13 +84,35 @@ func main() {
 	thumbURL := fmt.Sprintf("%s/%s/thumb.webp?alt=media", appspotURL, storagePrefix)
 	thumbMiniURL := fmt.Sprintf("%s/%s/thumb_mini.webp?alt=media", appspotURL, storagePrefix)
 
+	fmt.Printf("upload: begin making thumb blurhash...")
 	thumbBlurhash, err := makeThumbBlurhash(regionID)
 	if err != nil {
 		log.Fatalln("upload: error making a blurhash:", err)
 	}
+	fmt.Println("ok")
 
-	fmt.Printf(thumbBlurhash)
-	os.Exit(69)
+	// Upload compressed datafile
+	func() {
+		localPath := "compressed/" + regionID + ".zip"
+		cloudPath := "static/" + storagePrefix + "/rudy.zip"
+		upload(localPath, cloudPath, "application/zip")
+	}()
+
+	// Upload thumb
+	func() {
+		localPath := "database/" + regionID + "/meta/thumb.webp"
+		cloudPath := "static/" + storagePrefix + "/thumb.webp"
+		upload(localPath, cloudPath, "image/webp")
+	}()
+
+	// Upload minified thumb
+	func() {
+		localPath := "database/" + regionID + "/meta/thumb_mini.webp"
+		cloudPath := "static/" + storagePrefix + "/thumb_mini.webp"
+		upload(localPath, cloudPath, "image/webp")
+	}()
+
+	// Upload minifed thumb
 
 	meta := Datafile{
 		Available:        true,
@@ -105,8 +129,36 @@ func main() {
 		ThumbURL:         url.QueryEscape(thumbURL),
 	}
 
-	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(ctx, meta)
+	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(context.Background(), meta)
 	if err != nil {
 		log.Fatalf("error updating document %#v in /datafiles: %v\n", regionID, err)
 	}
+}
+
+// upload uploads a file under path to Cloud Storage path
+func upload(localPath string, cloudPath string, contentType string) {
+	ctx := context.TODO()
+
+	compressedDatafile, err := os.Open(localPath)
+	if err != nil {
+		log.Fatalln("upload: error opening compressed datafile:", err)
+	}
+
+	bucket := storageClient.Bucket(bucketName)
+	w := bucket.Object(cloudPath).NewWriter(ctx)
+	w.ContentType = contentType
+	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
+
+	fmt.Printf("upload: begin uploading to %s ...", cloudPath)
+	_, err = io.Copy(w, compressedDatafile)
+	if err != nil {
+		log.Fatalln("upload: error copying compressedDatafile to writer:", err)
+	}
+
+	err = w.Close()
+	if err != nil {
+		log.Fatalln("upload: error closing storage writer:", err)
+	}
+
+	fmt.Println("ok")
 }
