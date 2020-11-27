@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
@@ -17,6 +15,7 @@ import (
 
 const (
 	bucketName = "discoverrudy.appspot.com"
+	appspotURL = "https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static"
 )
 
 var (
@@ -54,33 +53,6 @@ func init() {
 	}
 }
 
-// parseMeta parses metadata for the datafile from the database.
-func parseMeta() (*Meta, error) {
-	contribsFile, err := os.Open("database/" + regionID + "/meta/contributors.json")
-	if err != nil {
-		// log.Fatalln("upload: error opening contributors file:", err)
-		return nil, err
-	}
-	defer contribsFile.Close()
-
-	b, err := ioutil.ReadAll(contribsFile)
-	if err != nil {
-		// log.Fatalln("upload: error reading from contributors file:", err)
-		return nil, err
-	}
-
-	var contributors []string
-	err = json.Unmarshal(b, &contributors)
-	if err != nil {
-		// log.Fatalln("upload: error unmarshalling contributors file:", err)
-		return nil, err
-	}
-
-	fmt.Printf("contributors: %v\n", contributors)
-
-	return nil, errors.New("not implemented yet")
-}
-
 func main() {
 	zipFilePath := "compressed/" + regionID + ".zip"
 	fileInfo, err := os.Stat(zipFilePath)
@@ -88,12 +60,39 @@ func main() {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
 
-	fileInfo.Size()
+	IsTestVersion := false // TODO:
+	regionName := "TODO"
 
-	meta, err := parseMeta()
+	featured, err := parseFeatured(regionID)
 	if err != nil {
-		log.Fatalln("upload: error parsing metadata:", err)
+		log.Fatalln("upload: error parsing featured:", err)
 	}
 
-	_ = meta.Sources
+	storagePrefix := regionID + "Test"
+
+	fileURL := fmt.Sprintf("%s/%s/%s?alt=media", appspotURL, storagePrefix, fileInfo.Name())
+	thumbURL := fmt.Sprintf("%s/%s/thumb.webp?alt=media", appspotURL, storagePrefix)
+	thumbMiniURL := fmt.Sprintf("%s/%s/thumb_mini.webp?alt=media", appspotURL, storagePrefix)
+
+	thumbBlurhash := "TODO"
+
+	meta := Datafile{
+		Available:        true,
+		Featured:         featured,
+		FileSize:         fileInfo.Size(),
+		FileURL:          fileURL,
+		LastUploadedTime: time.Time{},
+		Position:         1, // TODO: Handle position
+		RegionID:         regionID,
+		RegionName:       regionName,
+		IsTestVersion:    IsTestVersion,
+		ThumbBlurhash:    thumbBlurhash,
+		ThumbMiniURL:     thumbMiniURL,
+		ThumbURL:         thumbURL,
+	}
+
+	_, err = firestoreClient.Collection("datafilesTest").Doc(regionID).Set(ctx, meta)
+	if err != nil {
+		log.Fatalf("error updating document %#v in /datafiles: %v\n", regionID, err)
+	}
 }

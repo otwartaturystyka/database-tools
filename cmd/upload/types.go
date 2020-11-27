@@ -15,7 +15,7 @@ type Meta struct {
 type Datafile struct {
 	Available        bool      `firestore:"available,omitempty"`
 	Featured         []string  `firestore:"featured,omitempty"`
-	FileSize         int       `firestore:"fileSize,omitempty"`
+	FileSize         int64     `firestore:"fileSize,omitempty"`
 	FileURL          string    `firestore:"fileURL,omitempty"`
 	LastUploadedTime time.Time `firestore:"time,serverTimestamp"`
 	Position         int       `firestore:"position,omitempty"`
