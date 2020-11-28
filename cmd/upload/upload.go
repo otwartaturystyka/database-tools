@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/bartekpacia/database-tools/internal"
+
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
@@ -114,7 +116,7 @@ func main() {
 
 	// Upload minifed thumb
 
-	meta := Datafile{
+	meta := internal.Datafile{
 		Available:        true,
 		Featured:         featured,
 		FileSize:         fileInfo.Size(),
