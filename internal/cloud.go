@@ -2,8 +2,8 @@ package internal
 
 import "time"
 
-// Datafile represents a document in /datafiles collection in Firestore.
-type Datafile struct {
+// FirestoreDatafile represents a document in /datafiles collection in Firestore.
+type FirestoreDatafile struct {
 	Available        bool      `firestore:"available,omitempty"`
 	Featured         []string  `firestore:"featured,omitempty"`
 	FileSize         int64     `firestore:"fileSize,omitempty"`

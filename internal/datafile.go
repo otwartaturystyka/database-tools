@@ -1,5 +1,20 @@
 package internal
 
+import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+)
+
+// Datafile represents structure of data.json file.
+type Datafile struct {
+	Meta     Meta      `json:"meta"`
+	Sections []Section `json:"sections"`
+	Tracks   []Track   `json:"tracks"`
+	Stories  []Story   `json:"stories"`
+	Dayrooms []Dayroom `json:"dayrooms"`
+}
+
 // Meta represents JSON object in the beginning of data.json file.
 type Meta struct {
 	RegionID     string              `json:"region_id"`
@@ -7,6 +22,10 @@ type Meta struct {
 	GeneratedAt  string              `json:"generated_at"`
 	Contributors []string            `json:"contributors"`
 	Sources      []map[string]string `json:"sources"`
+}
+
+type Parseable interface {
+	Parse(lang string) error
 }
 
 // Section represents places of similiar type and associated metadata.
@@ -69,6 +88,61 @@ type Dayroom struct {
 	Lat       float32  `json:"lat"`
 	Lng       float32  `json:"lng"`
 	Leader    string   `json:"leader"`
+}
+
+// Parse parses dayroom data from its directory and assigns
+// it to dayroom pointer to by d. It must be used directly
+// in the dayroom's directory, usually by using os.Chdir().
+func (dayroom *Dayroom) Parse(lang string) error {
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		return err
+	}
+
+	nameFile, err := os.Open("content/" + lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+
+	overviewFile, err := os.Open("content/" + lang + "/overview.txt")
+	if err != nil {
+		return err
+	}
+
+	overview, err := ioutil.ReadAll(overviewFile)
+	if err != nil {
+		return err
+	}
+	dayroom.Overview = string(overview)
+
+	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
+	if err != nil {
+		return err
+	}
+
+	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	if err != nil {
+		return err
+	}
+	dayroom.QuickInfo = string(quickInfo)
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	dayroom.Name = string(name)
+
+	data, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, &dayroom)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Quality represents the quality of the image.

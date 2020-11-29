@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,6 +19,12 @@ var (
 	verbose  bool
 )
 
+func check(err error) {
+	if err != nil {
+		log.Fatalln("generate:", err)
+	}
+}
+
 func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
@@ -29,6 +34,8 @@ func init() {
 
 func main() {
 	flag.Parse()
+
+	var datafile internal.Datafile
 
 	if regionID == "" {
 		log.Fatalln("generate: regionID is empty")
@@ -44,59 +51,50 @@ func main() {
 	}
 
 	dayrooms, err := parseDayrooms(language)
-	if err != nil {
-		log.Fatalln("generate:", err)
-	}
+	check(err)
+	datafile.Dayrooms = dayrooms
 
-	for _, dayroom := range dayrooms {
-		fmt.Println(dayroom.Name, dayroom.Lat, dayroom.Lng)
-	}
+	os.Chdir("../..")
+
+	err = os.RemoveAll("generated/" + regionID)
+	check(err)
+
+	err = os.Mkdir("generated/"+regionID+"/", 0755)
+	check(err)
+
+	dataJSONFile, err := os.Create("generated/" + regionID + "/data.json")
+	check(err)
+
+	b, err := json.MarshalIndent(datafile, "", "	")
+	check(err)
+
+	n, err := dataJSONFile.Write(b)
+	check(err)
+
+	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
 
-func parseDayrooms(language string) (dayrooms []internal.Dayroom, err error) {
+func parseDayrooms(lang string) ([]internal.Dayroom, error) {
+	var dayrooms []internal.Dayroom
+
 	walker := func(path string, info os.FileInfo, err error) error {
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
 		}
-
-		var dayroom internal.Dayroom
-
+		// Jump 2 levels down, to dayrooms directory.
 		os.Chdir(path)
 
-		jsonFile, err := os.Open("data.json")
-		if err != nil {
-			log.Fatalln("generate:", err)
-		}
-
-		nameFile, err := os.Open("content/" + language + "/name.txt")
-		if err != nil {
-			log.Fatalln("generate:", err)
-		}
-
-		name, err := ioutil.ReadAll(nameFile)
-		if err != nil {
-			log.Fatalln("generate:", err)
-		}
-		dayroom.Name = string(name)
-
-		data, err := ioutil.ReadAll(jsonFile)
-		if err != nil {
-			log.Fatalln("generate:", err)
-		}
-
-		err = json.Unmarshal(data, &dayroom)
-		if err != nil {
-			log.Fatalln("generate:", err)
-		}
+		var dayroom internal.Dayroom
+		err = dayroom.Parse(lang)
 
 		dayrooms = append(dayrooms, dayroom)
-
 		os.Chdir("../..")
-		return nil
+
+		return err
 	}
 
-	err = filepath.Walk("dayrooms", walker)
+	err := filepath.Walk("dayrooms", walker)
 	if err != nil {
 		log.Fatalln("generate:", err)
 	}

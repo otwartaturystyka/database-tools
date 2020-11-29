@@ -116,7 +116,7 @@ func main() {
 
 	// Upload minifed thumb
 
-	meta := internal.Datafile{
+	meta := internal.FirestoreDatafile{
 		Available:        true,
 		Featured:         featured,
 		FileSize:         fileInfo.Size(),
