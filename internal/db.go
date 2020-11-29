@@ -69,14 +69,14 @@ type Dayroom struct {
 	Leader string  `json:"leader"`
 }
 
-// // ImageQuality represents the quality of the image.
-// type ImageQuality int
+// Quality represents the quality of the image.
+type Quality int
 
-// const (
-// 	// Compressed quality is most often used.
-// 	Compressed = 1
-// 	Original   = 2
-// )
+const (
+	// Compressed quality is most often used.
+	Compressed = 1
+	Original   = 2
+)
 
 // // Image represents a single image with some metadata *in the datafile*.
 // type Image struct {

@@ -59,7 +59,7 @@ func main() {
 	flag.Parse()
 
 	if regionID == "" {
-		log.Fatalln("compress: error: regionID is empty")
+		log.Fatalln("compress: regionID is empty")
 	}
 
 	zipFilePath := "compressed/" + regionID + ".zip"
@@ -151,7 +151,7 @@ func upload(localPath string, cloudPath string, contentType string) {
 	w.ContentType = contentType
 	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 
-	fmt.Printf("upload: begin uploading to %s ...", cloudPath)
+	fmt.Printf("upload: begin uploading to %s...", cloudPath)
 	_, err = io.Copy(w, compressedDatafile)
 	if err != nil {
 		log.Fatalln("upload: error copying compressedDatafile to writer:", err)
