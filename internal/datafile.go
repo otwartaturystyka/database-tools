@@ -68,6 +68,22 @@ type Track struct {
 	} `json:"coords"`
 }
 
+func (t *Track) Parse(lang string) error {
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, t)
+
+	return err
+}
+
 // Story represents a longer piece of text about a particular topic.
 type Story struct {
 	ID           string   `json:"id"`

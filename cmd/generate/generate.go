@@ -50,6 +50,10 @@ func main() {
 		log.Fatalln("generate:", err)
 	}
 
+	tracks, err := parseTracks(language)
+	check(err)
+	datafile.Tracks = tracks
+
 	dayrooms, err := parseDayrooms(language)
 	check(err)
 	datafile.Dayrooms = dayrooms
@@ -72,6 +76,34 @@ func main() {
 	check(err)
 
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
+}
+
+func parseTracks(lang string) ([]internal.Track, error) {
+	var tracks []internal.Track
+
+	walker := func(path string, info os.FileInfo, err error) error {
+		level := strings.Count(path, "/")
+		if level != 1 {
+			return nil
+		}
+		// Jump 2 levels down, to the track's directory.
+		os.Chdir(path)
+
+		var track internal.Track
+		err = track.Parse(lang)
+
+		tracks = append(tracks, track)
+		os.Chdir("../..")
+
+		return err
+	}
+
+	err := filepath.Walk("tracks", walker)
+	if err != nil {
+		log.Fatalln("generate:", err)
+	}
+
+	return tracks, nil
 }
 
 func parseDayrooms(lang string) ([]internal.Dayroom, error) {
