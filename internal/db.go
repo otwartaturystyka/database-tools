@@ -59,14 +59,16 @@ type Story struct {
 
 // Dayroom represents a place run by local community.
 type Dayroom struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	QuickInfo string `json:"quick_info"`
-	Overview  string `json:"overview"`
-	// Images    []string `json:"images"`
-	Lat    float32 `json:"lat"`
-	Lng    float32 `json:"lng"`
-	Leader string  `json:"leader"`
+	ID        string   `json:"id"`
+	Type      string   `json:"type"`
+	Section   string   `json:"section"`
+	Name      string   `json:"name"`
+	QuickInfo string   `json:"quick_info"`
+	Overview  string   `json:"overview"`
+	Images    []string `json:"images"`
+	Lat       float32  `json:"lat"`
+	Lng       float32  `json:"lng"`
+	Leader    string   `json:"leader"`
 }
 
 // Quality represents the quality of the image.
