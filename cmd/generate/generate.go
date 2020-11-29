@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/bartekpacia/database-tools/internal"
 )
@@ -60,13 +58,7 @@ func main() {
 
 	os.Chdir("../..")
 
-	err = os.RemoveAll("generated/" + regionID)
-	check(err)
-
-	err = os.Mkdir("generated/"+regionID+"/", 0755)
-	check(err)
-
-	dataJSONFile, err := os.Create("generated/" + regionID + "/data.json")
+	dataJSONFile, err := createOutputDir(regionID)
 	check(err)
 
 	b, err := json.MarshalIndent(datafile, "", "	")
@@ -78,58 +70,33 @@ func main() {
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
 
-func parseTracks(lang string) ([]internal.Track, error) {
-	var tracks []internal.Track
+func createOutputDir(regionID string) (*os.File, error) {
+	outputDirPath := "generated/" + regionID
 
-	walker := func(path string, info os.FileInfo, err error) error {
-		level := strings.Count(path, "/")
-		if level != 1 {
-			return nil
-		}
-		// Jump 2 levels down, to the track's directory.
-		os.Chdir(path)
-
-		var track internal.Track
-		err = track.Parse(lang)
-
-		tracks = append(tracks, track)
-		os.Chdir("../..")
-
-		return err
-	}
-
-	err := filepath.Walk("tracks", walker)
+	err := os.RemoveAll(outputDirPath)
 	if err != nil {
-		log.Fatalln("generate:", err)
+		return nil, err
 	}
 
-	return tracks, nil
-}
-
-func parseDayrooms(lang string) ([]internal.Dayroom, error) {
-	var dayrooms []internal.Dayroom
-
-	walker := func(path string, info os.FileInfo, err error) error {
-		level := strings.Count(path, "/")
-		if level != 1 {
-			return nil
-		}
-		// Jump 2 levels down, to dayrooms directory.
-		os.Chdir(path)
-
-		var dayroom internal.Dayroom
-		err = dayroom.Parse(lang)
-
-		dayrooms = append(dayrooms, dayroom)
-		os.Chdir("../..")
-
-		return err
-	}
-
-	err := filepath.Walk("dayrooms", walker)
+	err = os.Mkdir(outputDirPath, 0755)
 	if err != nil {
-		log.Fatalln("generate:", err)
+		return nil, err
 	}
 
-	return dayrooms, nil
+	err = os.Mkdir(outputDirPath+"/images", 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.Mkdir(outputDirPath+"/stories", 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	dataJSONFile, err := os.Create("generated/" + regionID + "/data.json")
+	if err != nil {
+		return nil, err
+	}
+
+	return dataJSONFile, nil
 }
