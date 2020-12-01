@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -40,73 +39,26 @@ func (m *Meta) Parse(lang string) error {
 	}
 	defer nameFile.Close()
 
-	name, err := ioutil.ReadAll(nameFile)
+	dataFile, err := os.Open("data.json")
 	if err != nil {
 		return err
 	}
-	m.RegionName = string(name)
+	defer dataFile.Close()
 
-	contribFile, err := os.Open("contributors.json")
-	if err != nil {
-		return err
-	}
-	defer contribFile.Close()
-
-	b, err := ioutil.ReadAll(contribFile)
+	b, err := ioutil.ReadAll(dataFile)
 	if err != nil {
 		return err
 	}
 
-	contributors := make([]string, 0)
-	err = json.Unmarshal(b, &contributors)
+	err = json.Unmarshal(b, &m)
 	if err != nil {
 		return err
 	}
-	m.Contributors = contributors
-
-	featuredFile, err := os.Open("featured.json")
-	if err != nil {
-		return err
-	}
-	defer featuredFile.Close()
-
-	b, err = ioutil.ReadAll(featuredFile)
-	if err != nil {
-		return err
-	}
-
-	featured := make([]string, 0)
-	err = json.Unmarshal(b, &featured)
-	if err != nil {
-		return err
-	}
-	m.Featured = featured
-
-	sourcesFile, err := os.Open("sources.json")
-	if err != nil {
-		return err
-	}
-	defer sourcesFile.Close()
-
-	b, err = ioutil.ReadAll(sourcesFile)
-	if err != nil {
-		return err
-	}
-
-	sources := make([]struct {
-		Name       string `json:"name"`
-		WebsiteURL string `json:"website_url"`
-	}, 0)
-	err = json.Unmarshal(b, &sources)
-	if err != nil {
-		return err
-	}
-
-	m.Sources = sources
 
 	return nil
 }
 
+// Parseable is everything that can be parsed from the database filesystem.
 type Parseable interface {
 	Parse(lang string) error
 }
@@ -183,7 +135,6 @@ func (s *Section) Parse(lang string) error {
 	}
 
 	err = filepath.Walk("places", placesWalker)
-	fmt.Printf("len: %d, cap: %d\n", len(places), cap(places))
 
 	s.Places = places
 
