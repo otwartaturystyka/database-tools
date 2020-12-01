@@ -48,6 +48,14 @@ func main() {
 		log.Fatalln("generate:", err)
 	}
 
+	meta, err := parseMeta(language)
+	check(err)
+	datafile.Meta = meta
+
+	sections, err := parseSections(language)
+	check(err)
+	datafile.Sections = sections
+
 	tracks, err := parseTracks(language)
 	check(err)
 	datafile.Tracks = tracks

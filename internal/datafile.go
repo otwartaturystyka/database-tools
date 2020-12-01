@@ -17,11 +17,91 @@ type Datafile struct {
 
 // Meta represents JSON object in the beginning of data.json file.
 type Meta struct {
-	RegionID     string              `json:"region_id"`
-	RegionName   string              `json:"region_name"`
-	GeneratedAt  string              `json:"generated_at"`
-	Contributors []string            `json:"contributors"`
-	Sources      []map[string]string `json:"sources"`
+	RegionID     string   `json:"region_id"`
+	RegionName   string   `json:"region_name"`
+	GeneratedAt  string   `json:"generated_at"`
+	Contributors []string `json:"contributors"`
+	Featured     []string `json:"featured"`
+	Sources      []struct {
+		Name       string `json:"name"`
+		WebsiteURL string `json:"website_url"`
+	} `json:"sources"`
+}
+
+// Parse parses datafile's metadata and assigns it to meta
+// struct pointed to by m.
+func (m *Meta) Parse(lang string) error {
+	nameFile, err := os.Open(lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+	defer nameFile.Close()
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	m.RegionName = string(name)
+
+	contribFile, err := os.Open("contributors.json")
+	if err != nil {
+		return err
+	}
+	defer contribFile.Close()
+
+	b, err := ioutil.ReadAll(contribFile)
+	if err != nil {
+		return err
+	}
+
+	contributors := make([]string, 0)
+	err = json.Unmarshal(b, &contributors)
+	if err != nil {
+		return err
+	}
+	m.Contributors = contributors
+
+	featuredFile, err := os.Open("featured.json")
+	if err != nil {
+		return err
+	}
+	defer featuredFile.Close()
+
+	b, err = ioutil.ReadAll(featuredFile)
+	if err != nil {
+		return err
+	}
+
+	featured := make([]string, 0)
+	err = json.Unmarshal(b, &featured)
+	if err != nil {
+		return err
+	}
+	m.Featured = featured
+
+	sourcesFile, err := os.Open("sources.json")
+	if err != nil {
+		return err
+	}
+	defer sourcesFile.Close()
+
+	b, err = ioutil.ReadAll(sourcesFile)
+	if err != nil {
+		return err
+	}
+
+	sources := make([]struct {
+		Name       string `json:"name"`
+		WebsiteURL string `json:"website_url"`
+	}, 0)
+	err = json.Unmarshal(b, &sources)
+	if err != nil {
+		return err
+	}
+
+	m.Sources = sources
+
+	return nil
 }
 
 type Parseable interface {
@@ -36,6 +116,46 @@ type Section struct {
 	BgImage   string  `json:"background_image"`
 	QuickInfo string  `json:"quick_info"`
 	Places    []Place `json:"places"`
+}
+
+// Parse parses section data from its directory and assigns
+// it to section pointed to by s. It must be used directly
+// in the scetions's directory. It recursively parses places.
+func (s *Section) Parse(lang string) error {
+	nameFile, err := os.Open("content/" + lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	s.Name = string(name)
+
+	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
+	if err != nil {
+		return err
+	}
+
+	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	if err != nil {
+		return err
+	}
+	s.QuickInfo = string(quickInfo)
+
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		return err
+	}
+
+	b, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, s)
+
+	return err
 }
 
 // Place represents single place in real world.

@@ -1,13 +1,47 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bartekpacia/database-tools/internal"
 )
+
+func parseMeta(lang string) (internal.Meta, error) {
+	os.Chdir("meta")
+
+	var meta internal.Meta
+	err := meta.Parse(lang)
+
+	os.Chdir("..")
+
+	return meta, err
+}
+
+func parseSections(lang string) ([]internal.Section, error) {
+	var sections []internal.Section
+
+	walker := func(path string, info os.FileInfo, err error) error {
+		level := strings.Count(path, "/")
+		if level != 1 {
+			return nil
+		}
+		// Jump 2 levels down, to the track's directory.
+		os.Chdir(path)
+
+		var section internal.Section
+		err = section.Parse(lang)
+
+		sections = append(sections, section)
+		os.Chdir("../..")
+
+		return err
+	}
+	err := filepath.Walk("sections", walker)
+
+	return sections, err
+}
 
 func parseTracks(lang string) ([]internal.Track, error) {
 	var tracks []internal.Track
@@ -28,13 +62,9 @@ func parseTracks(lang string) ([]internal.Track, error) {
 
 		return err
 	}
-
 	err := filepath.Walk("tracks", walker)
-	if err != nil {
-		log.Fatalln("generate:", err)
-	}
 
-	return tracks, nil
+	return tracks, err
 }
 
 func parseStories(lang string) ([]internal.Story, error) {
@@ -58,11 +88,8 @@ func parseStories(lang string) ([]internal.Story, error) {
 	}
 
 	err := filepath.Walk("stories", walker)
-	if err != nil {
-		log.Fatalln("generate:", err)
-	}
 
-	return stories, nil
+	return stories, err
 }
 
 func parseDayrooms(lang string) ([]internal.Dayroom, error) {
@@ -86,9 +113,6 @@ func parseDayrooms(lang string) ([]internal.Dayroom, error) {
 	}
 
 	err := filepath.Walk("dayrooms", walker)
-	if err != nil {
-		log.Fatalln("generate:", err)
-	}
 
-	return dayrooms, nil
+	return dayrooms, err
 }
