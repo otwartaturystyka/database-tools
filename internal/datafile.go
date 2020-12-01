@@ -1,11 +1,15 @@
 package internal
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // Datafile represents structure of data.json file.
@@ -198,6 +202,23 @@ func (p *Place) Parse(lang string) error {
 	}
 	p.Overview = string(overview)
 
+	i := 0
+	for {
+		textFileName := "text_" + fmt.Sprint(i)
+		textFile, err := os.Open("content/" + lang + "/" + textFileName)
+		if os.IsNotExist(err) {
+			break
+		}
+
+		header, content, err := readTextualData(textFile)
+		if err != nil {
+			return err
+		}
+
+		p.Headers = append(p.Headers, header)
+		p.Content = append(p.Content, content)
+	}
+
 	jsonFile, err := os.Open("data.json")
 	if err != nil {
 		return err
@@ -212,6 +233,29 @@ func (p *Place) Parse(lang string) error {
 	err = json.Unmarshal(b, p)
 
 	return err
+}
+
+func readTextualData(file *os.File) (header string, content string, err error) {
+	reader := bufio.NewReader(file)
+	header, err = reader.ReadString('\n')
+	if err != nil {
+		err = errors.Wrap(err, "reading header failed")
+		return
+	}
+
+	reader.ReadString('\n')
+	if err != nil {
+		err = errors.Wrap(err, "reading 3-slash divider failed")
+		return
+	}
+
+	content, err = reader.ReadString('\n')
+	if err != nil {
+		err = errors.Wrap(err, "reading content from failed")
+		return
+	}
+
+	return
 }
 
 // Track represents a bike trail.
