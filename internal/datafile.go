@@ -2,8 +2,11 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 // Datafile represents structure of data.json file.
@@ -158,6 +161,32 @@ func (s *Section) Parse(lang string) error {
 	}
 	err = json.Unmarshal(b, s)
 
+	// Parse places.
+	places := make([]Place, 0, 50)
+	placesWalker := func(path string, info os.FileInfo, err error) error {
+		level := strings.Count(path, "/")
+		if level != 1 {
+			return nil
+		}
+
+		os.Chdir(path)
+
+		var place Place
+		err = place.Parse(lang)
+		if err != nil {
+			return err
+		}
+		os.Chdir("../..")
+
+		places = append(places, place)
+		return nil
+	}
+
+	err = filepath.Walk("places", placesWalker)
+	fmt.Printf("len: %d, cap: %d\n", len(places), cap(places))
+
+	s.Places = places
+
 	return err
 }
 
@@ -178,6 +207,62 @@ type Place struct {
 	Images      []string `json:"images"`
 }
 
+// Parse parses place data from its directory and assigns
+// it to track pointed to by p. It must be used directly
+// in the place's directory.
+func (p *Place) Parse(lang string) error {
+	nameFile, err := os.Open("content/" + lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+	defer nameFile.Close()
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	p.Name = string(name)
+
+	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
+	if err != nil {
+		return err
+	}
+	defer quickInfoFile.Close()
+
+	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	if err != nil {
+		return err
+	}
+	p.QuickInfo = string(quickInfo)
+
+	overviewFile, err := os.Open("content/" + lang + "/overview.txt")
+	if err != nil {
+		return err
+	}
+	defer overviewFile.Close()
+
+	overview, err := ioutil.ReadAll(overviewFile)
+	if err != nil {
+		return err
+	}
+	p.Overview = string(overview)
+
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		return err
+	}
+	defer jsonFile.Close()
+
+	b, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(b, p)
+
+	return err
+}
+
 // Track represents a bike trail.
 type Track struct {
 	ID        string   `json:"id"`
@@ -193,7 +278,7 @@ type Track struct {
 
 // Parse parses track data from its directory and assigns
 // it to track pointed to by t. It must be used directly
-// in the tracks's directory, usually by using os.Chdir().
+// in the track's directory, usually by using os.Chdir().
 func (t *Track) Parse(lang string) error {
 	jsonFile, err := os.Open("data.json")
 	if err != nil {

@@ -32,11 +32,13 @@ func parseSections(lang string) ([]internal.Section, error) {
 
 		var section internal.Section
 		err = section.Parse(lang)
-
-		sections = append(sections, section)
+		if err != nil {
+			return err
+		}
 		os.Chdir("../..")
 
-		return err
+		sections = append(sections, section)
+		return nil
 	}
 	err := filepath.Walk("sections", walker)
 
