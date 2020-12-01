@@ -52,6 +52,10 @@ func main() {
 	check(err)
 	datafile.Tracks = tracks
 
+	stories, err := parseStories(language)
+	check(err)
+	datafile.Stories = stories
+
 	dayrooms, err := parseDayrooms(language)
 	check(err)
 	datafile.Dayrooms = dayrooms
@@ -70,6 +74,7 @@ func main() {
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
 
+// CreateOutputDir creates a datafile directory structure inside generated/ in project root.
 func createOutputDir(regionID string) (*os.File, error) {
 	outputDirPath := "generated/" + regionID
 

@@ -68,6 +68,9 @@ type Track struct {
 	} `json:"coords"`
 }
 
+// Parse parses track data from its directory and assigns
+// it to track pointed to by t. It must be used directly
+// in the tracks's directory, usually by using os.Chdir().
 func (t *Track) Parse(lang string) error {
 	jsonFile, err := os.Open("data.json")
 	if err != nil {
@@ -78,6 +81,39 @@ func (t *Track) Parse(lang string) error {
 	if err != nil {
 		return err
 	}
+
+	nameFile, err := os.Open(lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	t.Name = string(name)
+
+	overviewFile, err := os.Open(lang + "/overview.txt")
+	if err != nil {
+		return err
+	}
+
+	overview, err := ioutil.ReadAll(overviewFile)
+	if err != nil {
+		return err
+	}
+	t.Overview = string(overview)
+
+	quickInfoFile, err := os.Open(lang + "/quick_info.txt")
+	if err != nil {
+		return err
+	}
+
+	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	if err != nil {
+		return err
+	}
+	t.QuickInfo = string(quickInfo)
 
 	err = json.Unmarshal(b, t)
 
@@ -90,6 +126,43 @@ type Story struct {
 	Name         string   `json:"name"`
 	MarkdownFile string   `json:"markdown_filename"`
 	Images       []string `json:"images"`
+}
+
+// Parse parses story data from its directory and assigns
+// it to story pointed to by s. It must be used directly
+// in the tracks's directory.
+func (s *Story) Parse(lang string) error {
+	jsonFile, err := os.Open("data.json")
+	if err != nil {
+		return err
+	}
+
+	nameFile, err := os.Open(lang + "/name.txt")
+	if err != nil {
+		return err
+	}
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	s.Name = string(name)
+
+	b, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, s)
+	if err != nil {
+		return err
+	}
+
+	// markdownFile, err := os.Open(lang +"/"+s.MarkdownFile)
+	// if err != nil {
+	// 	return nil
+	// }
+
+	return err
 }
 
 // Dayroom represents a place run by local community.
