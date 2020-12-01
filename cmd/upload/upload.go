@@ -145,6 +145,7 @@ func upload(localPath string, cloudPath string, contentType string) {
 	if err != nil {
 		log.Fatalln("upload: error opening compressed datafile:", err)
 	}
+	defer compressedDatafile.Close()
 
 	bucket := storageClient.Bucket(bucketName)
 	w := bucket.Object(cloudPath).NewWriter(ctx)
