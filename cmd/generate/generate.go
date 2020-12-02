@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -12,7 +13,7 @@ import (
 
 var (
 	regionID string
-	language string
+	lang     string
 	quality  int
 	verbose  bool
 )
@@ -26,7 +27,7 @@ func check(err error) {
 func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
-	flag.StringVar(&language, "lang", "pl", "language of text in the datafile")
+	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
 	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile")
 }
 
@@ -48,23 +49,23 @@ func main() {
 		log.Fatalln("generate:", err)
 	}
 
-	meta, err := parseMeta(language)
+	meta, err := parseMeta(lang)
 	check(err)
 	datafile.Meta = meta
 
-	sections, err := parseSections(language)
+	sections, err := parseSections(lang)
 	check(err)
 	datafile.Sections = sections
 
-	tracks, err := parseTracks(language)
+	tracks, err := parseTracks(lang)
 	check(err)
 	datafile.Tracks = tracks
 
-	stories, err := parseStories(language)
+	stories, err := parseStories(lang)
 	check(err)
 	datafile.Stories = stories
 
-	dayrooms, err := parseDayrooms(language)
+	dayrooms, err := parseDayrooms(lang)
 	check(err)
 	datafile.Dayrooms = dayrooms
 
@@ -79,7 +80,34 @@ func main() {
 	n, err := dataJSONFile.Write(b)
 	check(err)
 
+	err = copyMarkdownFiles(&stories)
+	check(err)
+
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
+}
+
+// Must be run from this project's root dir.
+func copyMarkdownFiles(stories *[]internal.Story) error {
+	for _, story := range *stories {
+		wd, err := os.Getwd()
+		check(err)
+
+		srcPath := wd + "/database/" + regionID + "/stories/" + story.ID + "/" + lang + "/" + story.MarkdownFile
+		dstPath := wd + "/generated/" + regionID + "/stories/" + story.MarkdownFile
+
+		src, err := os.Open(srcPath)
+		check(err)
+
+		dst, err := os.Create(dstPath)
+		check(err)
+
+		n, err := io.Copy(dst, src)
+		check(err)
+
+		fmt.Printf("generate: copied story %s, %d bytes copied\n", story.ID, n)
+	}
+
+	return nil
 }
 
 // CreateOutputDir creates a datafile directory structure inside generated/ in project root.
