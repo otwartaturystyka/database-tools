@@ -83,8 +83,12 @@ func main() {
 	err = copyMarkdownFiles(&stories)
 	check(err)
 
+	// TODO err = copyImages(&images)
+
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
+
+// func copyImages(images )
 
 // Must be run from this project's root dir.
 func copyMarkdownFiles(stories *[]internal.Story) error {
@@ -105,6 +109,10 @@ func copyMarkdownFiles(stories *[]internal.Story) error {
 		check(err)
 
 		fmt.Printf("generate: copied story %s, %d bytes copied\n", story.ID, n)
+
+		for i, imagePath := range story.ImagesPaths() {
+			fmt.Println(i, ":", imagePath)
+		}
 	}
 
 	return nil

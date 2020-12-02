@@ -342,6 +342,26 @@ type Story struct {
 	Name         string   `json:"name"`
 	MarkdownFile string   `json:"markdown_filename"`
 	Images       []string `json:"images"`
+	imagesPaths  []string
+}
+
+func (s *Story) makeImagesPaths() error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	for _, image := range s.Images {
+		absPath := filepath.Join(cwd, "images/"+image+".webp")
+
+		s.imagesPaths = append(s.imagesPaths, absPath)
+	}
+
+	return nil
+}
+
+func (s *Story) ImagesPaths() []string {
+	return s.imagesPaths
 }
 
 // Parse parses story data from its directory and assigns
@@ -374,6 +394,8 @@ func (s *Story) Parse(lang string) error {
 	if err != nil {
 		return err
 	}
+
+	s.makeImagesPaths()
 
 	return err
 }
