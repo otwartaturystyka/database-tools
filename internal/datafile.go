@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -23,11 +24,11 @@ type Datafile struct {
 
 // Meta represents JSON object in the beginning of data.json file.
 type Meta struct {
-	RegionID     string   `json:"region_id"`
-	RegionName   string   `json:"region_name"`
-	GeneratedAt  string   `json:"generated_at"`
-	Contributors []string `json:"contributors"`
-	Featured     []string `json:"featured"`
+	RegionID     string    `json:"region_id"`
+	RegionName   string    `json:"region_name"`
+	GeneratedAt  time.Time `json:"generated_at"`
+	Contributors []string  `json:"contributors"`
+	Featured     []string  `json:"featured"`
 	Sources      []struct {
 		Name       string `json:"name"`
 		WebsiteURL string `json:"website_url"`
@@ -37,11 +38,19 @@ type Meta struct {
 // Parse parses datafile's metadata and assigns it to meta
 // struct pointed to by m.
 func (m *Meta) Parse(lang string) error {
+	m.GeneratedAt = time.Now().Round(time.Minute).UTC()
+
 	nameFile, err := os.Open(lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	defer nameFile.Close()
+
+	name, err := ioutil.ReadAll(nameFile)
+	if err != nil {
+		return err
+	}
+	m.RegionName = string(name)
 
 	dataFile, err := os.Open("data.json")
 	if err != nil {
