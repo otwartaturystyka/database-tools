@@ -5,6 +5,7 @@ key.json
 /generate
 /compress
 /upload
+/walk
 
 /generated
 /compressed
