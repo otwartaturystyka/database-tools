@@ -3,11 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"golang.org/x/image/webp"
 )
 
 var (
@@ -23,6 +27,8 @@ type entry struct {
 	filename string
 	path     string
 	sizeMB   float64
+	width    int
+	height   int
 }
 
 func init() {
@@ -62,16 +68,55 @@ func main() {
 			return nil
 		}
 
+		w, h := 0, 0
+		var file *os.File
 		if ext == ".jpg" || ext == ".jpeg" {
 			jpegs++
+			file, err = os.Open(path)
+			if err != nil {
+				log.Fatalln("walk: error opening file:", err)
+			}
+
+			cfg, err := jpeg.DecodeConfig(file)
+			if err != nil {
+				log.Fatalln("walk: error decoding image config:", path, err)
+			}
+
+			w = cfg.Width
+			h = cfg.Height
 		} else if ext == ".png" {
 			pngs++
+			file, err = os.Open(path)
+			if err != nil {
+				log.Fatalln("walk: error opening file:", err)
+			}
+
+			cfg, err := png.DecodeConfig(file)
+			if err != nil {
+				log.Fatalln("walk: error decoding image config:", err)
+			}
+
+			w = cfg.Width
+			h = cfg.Height
 		} else if ext == ".webp" {
 			webps++
+			file, err = os.Open(path)
+			if err != nil {
+				log.Fatalln("walk: error opening file:", err)
+			}
+
+			cfg, err := webp.DecodeConfig(file)
+			if err != nil {
+				log.Fatalln("walk: error decoding image config:", err)
+			}
+
+			w = cfg.Width
+			h = cfg.Height
 		} else {
 			fmt.Println("WTFFFFFFF", path)
-			// return nil
+			return nil
 		}
+		defer file.Close()
 
 		sizeMB := float64(info.Size()) / 1000 / 1000
 
@@ -83,7 +128,7 @@ func main() {
 		filename := splitties[len(splitties)-1]
 		justPath := strings.TrimSuffix(path, filename)
 
-		entry := entry{path: justPath, filename: filename, sizeMB: sizeMB}
+		entry := entry{path: justPath, filename: filename, sizeMB: sizeMB, width: w, height: h}
 		entries = append(entries, entry)
 		return nil
 	}
@@ -96,17 +141,17 @@ func main() {
 		return entries[i].sizeMB > entries[j].sizeMB
 	})
 
-	for _, entry := range entries {
+	for _, e := range entries {
 		if splitPaths {
-			fmt.Printf("walk: %.2f MB %s\n", entry.sizeMB, entry.path)
+			fmt.Printf("walk: %.2f MB %s\n", e.sizeMB, e.path)
 		}
 
 		if justFilenames {
-			fmt.Printf("walk: %.2f MB %s\n", entry.sizeMB, entry.filename)
+			fmt.Printf("walk: %.2f MB %dx%d %s\n", e.sizeMB, e.width, e.height, e.filename)
 		}
 
 		if !splitPaths && !justFilenames {
-			fmt.Printf("walk: %.2f MB %s\n", entry.sizeMB, entry.path+entry.filename)
+			fmt.Printf("walk: %.2f MB %dx%d %s\n", e.sizeMB, e.width, e.height, e.path+e.filename)
 		}
 	}
 
