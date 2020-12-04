@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"golang.org/x/image/webp"
@@ -52,18 +53,70 @@ func main() {
 		log.Fatalln("walk: regionID is empty")
 	}
 
-	entries := make([]entry, 0)
 	jpegs := 0
 	pngs := 0
 	webps := 0
+	entries, stats := discover(&jpegs, &pngs, &webps)
+
+	fmt.Println(len(entries))
+
+	// Sort by age, keeping original order or equal elements.
+	sort.SliceStable(entries, func(i, j int) bool {
+		return entries[i].sizeMB > entries[j].sizeMB
+	})
+
+	for _, e := range entries {
+		if splitPaths {
+			fmt.Printf("walk: %.2f MB %s\n", e.sizeMB, e.path)
+		}
+
+		if justFilenames {
+			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.filename)
+		}
+
+		if !splitPaths && !justFilenames {
+			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.path+e.filename)
+		}
+	}
+
+	type pair struct {
+		dimens string
+		count  int
+	}
+
+	var temp []pair
+	for dim, count := range stats {
+		pair := pair{dimens: dim, count: count}
+		temp = append(temp, pair)
+	}
+
+	sort.SliceStable(temp, func(i, j int) bool {
+		return temp[i].count > temp[j].count
+	})
+
+	for _, pair := range temp {
+		s := strings.Split(pair.dimens, "x")
+		w, _ := strconv.Atoi(s[0])
+		h, _ := strconv.Atoi(s[1])
+
+		ratio := float32(h) / float32(w)
+
+		fmt.Printf("%s %.2f : %d\n", pair.dimens, ratio, pair.count)
+	}
+
+	total := jpegs + pngs + webps
+	fmt.Printf("walk: %d jpegs, %d pngs, %d webps (%d total) \n", jpegs, pngs, webps, total)
+}
+
+func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[string]int) {
+	stats = make(map[string]int, 0)
+
 	walker := func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, "/.git/") {
 			return nil
 		}
 
-		// level := strings.Count(path, "/")
 		if !strings.Contains(path, "/original/") && !strings.Contains(path, "/compressed/") {
-			// fmt.Println(path)
 			return nil
 		}
 		ext := filepath.Ext(path)
@@ -75,7 +128,7 @@ func main() {
 		w, h := 0, 0
 		var file *os.File
 		if ext == ".jpg" || ext == ".jpeg" {
-			jpegs++
+			*(jpegs)++
 			file, err = os.Open(path)
 			if err != nil {
 				log.Fatalln("walk: error opening file:", err)
@@ -89,7 +142,7 @@ func main() {
 			w = cfg.Width
 			h = cfg.Height
 		} else if ext == ".png" {
-			pngs++
+			*(pngs)++
 			file, err = os.Open(path)
 			if err != nil {
 				log.Fatalln("walk: error opening file:", err)
@@ -103,7 +156,7 @@ func main() {
 			w = cfg.Width
 			h = cfg.Height
 		} else if ext == ".webp" {
-			webps++
+			*(webps)++
 			file, err = os.Open(path)
 			if err != nil {
 				log.Fatalln("walk: error opening file:", err)
@@ -134,31 +187,11 @@ func main() {
 
 		entry := entry{path: justPath, filename: filename, sizeMB: sizeMB, width: w, height: h}
 		entries = append(entries, entry)
+		stats[entry.dimens()]++
 		return nil
 	}
+
 	filepath.Walk("database/"+regionID, walker)
 
-	fmt.Println(len(entries))
-
-	// Sort by age, keeping original order or equal elements.
-	sort.SliceStable(entries, func(i, j int) bool {
-		return entries[i].sizeMB > entries[j].sizeMB
-	})
-
-	for _, e := range entries {
-		if splitPaths {
-			fmt.Printf("walk: %.2f MB %s\n", e.sizeMB, e.path)
-		}
-
-		if justFilenames {
-			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.filename)
-		}
-
-		if !splitPaths && !justFilenames {
-			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.path+e.filename)
-		}
-	}
-
-	total := jpegs + pngs + webps
-	fmt.Printf("walk: %d jpegs, %d pngs, %d webps (%d total) \n", jpegs, pngs, webps, total)
+	return
 }
