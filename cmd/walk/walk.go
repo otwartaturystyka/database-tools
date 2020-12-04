@@ -31,6 +31,10 @@ type entry struct {
 	height   int
 }
 
+func (e *entry) dimens() string {
+	return fmt.Sprintf("%dx%d", e.width, e.height)
+}
+
 func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region id")
@@ -147,11 +151,11 @@ func main() {
 		}
 
 		if justFilenames {
-			fmt.Printf("walk: %.2f MB %dx%d %s\n", e.sizeMB, e.width, e.height, e.filename)
+			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.filename)
 		}
 
 		if !splitPaths && !justFilenames {
-			fmt.Printf("walk: %.2f MB %dx%d %s\n", e.sizeMB, e.width, e.height, e.path+e.filename)
+			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.path+e.filename)
 		}
 	}
 
