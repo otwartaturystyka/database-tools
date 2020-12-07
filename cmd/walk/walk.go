@@ -18,6 +18,7 @@ import (
 var (
 	regionID      string
 	minSize       float64
+	sortBy        string
 	icons         bool
 	splitPaths    bool
 	justFilenames bool
@@ -40,6 +41,7 @@ func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region id")
 	flag.Float64Var(&minSize, "min-size", 2, "min size of images to list")
+	flag.StringVar(&sortBy, "sort-by", "count", "sort by \"count\" or \"ratio\"")
 	flag.BoolVar(&icons, "icons", false, "whether to list icons (files starting with ic_)")
 	flag.BoolVar(&splitPaths, "split-paths", false, "whether to split filepaths")
 	flag.BoolVar(&justFilenames, "just-filenames", false, "whether to print only filenames")
@@ -82,26 +84,32 @@ func main() {
 	type pair struct {
 		dimens string
 		count  int
+		ratio  float32
 	}
 
-	var temp []pair
-	for dim, count := range stats {
-		pair := pair{dimens: dim, count: count}
-		temp = append(temp, pair)
-	}
-
-	sort.SliceStable(temp, func(i, j int) bool {
-		return temp[i].count > temp[j].count
-	})
-
-	for _, pair := range temp {
-		s := strings.Split(pair.dimens, "x")
+	var pairs []pair
+	for dimens, count := range stats {
+		s := strings.Split(dimens, "x")
 		w, _ := strconv.Atoi(s[0])
 		h, _ := strconv.Atoi(s[1])
 
 		ratio := float32(h) / float32(w)
+		pair := pair{dimens: dimens, count: count, ratio: ratio}
+		pairs = append(pairs, pair)
+	}
 
-		fmt.Printf("%s %.2f : %d\n", pair.dimens, ratio, pair.count)
+	if sortBy == "count" {
+		sort.SliceStable(pairs, func(i, j int) bool {
+			return pairs[i].count > pairs[j].count
+		})
+	} else if sortBy == "ratio" {
+		sort.SliceStable(pairs, func(i, j int) bool {
+			return pairs[i].ratio > pairs[j].ratio
+		})
+	}
+
+	for _, pair := range pairs {
+		fmt.Printf("walk: %d images of size %s and aspect ratio %.2f\n", pair.count, pair.dimens, pair.ratio)
 	}
 
 	total := jpegs + pngs + webps
@@ -184,6 +192,10 @@ func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[str
 		splitties := strings.Split(path, "/")
 		filename := splitties[len(splitties)-1]
 		justPath := strings.TrimSuffix(path, filename)
+
+		if h > w {
+			fmt.Println(path, filename)
+		}
 
 		entry := entry{path: justPath, filename: filename, sizeMB: sizeMB, width: w, height: h}
 		entries = append(entries, entry)
