@@ -19,6 +19,7 @@ var (
 	regionID      string
 	minSize       float64
 	sortBy        string
+	images        bool
 	icons         bool
 	splitPaths    bool
 	justFilenames bool
@@ -42,6 +43,7 @@ func init() {
 	flag.StringVar(&regionID, "region-id", "", "region id")
 	flag.Float64Var(&minSize, "min-size", 2, "min size of images to list")
 	flag.StringVar(&sortBy, "sort-by", "count", "sort by \"count\" or \"ratio\"")
+	flag.BoolVar(&images, "images", false, "whether to list normal images (files not starting with ic_")
 	flag.BoolVar(&icons, "icons", false, "whether to list icons (files starting with ic_)")
 	flag.BoolVar(&splitPaths, "split-paths", false, "whether to split filepaths")
 	flag.BoolVar(&justFilenames, "just-filenames", false, "whether to print only filenames")
@@ -60,24 +62,22 @@ func main() {
 	webps := 0
 	entries, stats := discover(&jpegs, &pngs, &webps)
 
-	fmt.Println(len(entries))
-
 	// Sort by age, keeping original order or equal elements.
 	sort.SliceStable(entries, func(i, j int) bool {
 		return entries[i].sizeMB > entries[j].sizeMB
 	})
 
-	for _, e := range entries {
+	for i, e := range entries {
 		if splitPaths {
-			fmt.Printf("walk: %.2f MB %s\n", e.sizeMB, e.path)
+			fmt.Printf("walk:%d %.2f MB %s\n", i, e.sizeMB, e.path)
 		}
 
 		if justFilenames {
-			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.filename)
+			fmt.Printf("walk:%d %.2f MB %s %s\n", i, e.sizeMB, e.dimens(), e.filename)
 		}
 
 		if !splitPaths && !justFilenames {
-			fmt.Printf("walk: %.2f MB %s %s\n", e.sizeMB, e.dimens(), e.path+e.filename)
+			fmt.Printf("walk:%d %.2f MB %s %s\n", i, e.sizeMB, e.dimens(), e.path+e.filename)
 		}
 	}
 
@@ -129,6 +129,10 @@ func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[str
 		}
 		ext := filepath.Ext(path)
 
+		if !images && !strings.Contains(path, "/ic_") {
+			return nil
+		}
+
 		if !icons && strings.Contains(path, "/ic_") {
 			return nil
 		}
@@ -178,7 +182,7 @@ func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[str
 			w = cfg.Width
 			h = cfg.Height
 		} else {
-			fmt.Println("WTFFFFFFF", path)
+			fmt.Println("walk: unrecognized file:", path)
 			return nil
 		}
 		defer file.Close()
@@ -194,7 +198,7 @@ func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[str
 		justPath := strings.TrimSuffix(path, filename)
 
 		if h > w {
-			fmt.Println(path, filename)
+			fmt.Println("walk: h > w", justPath, filename)
 		}
 
 		entry := entry{path: justPath, filename: filename, sizeMB: sizeMB, width: w, height: h}
