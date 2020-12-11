@@ -59,7 +59,7 @@ func main() {
 
 	sections, err := parseSections(lang)
 	if err != nil {
-		log.Fatalf("parseSections: %v\n", err)
+		log.Fatalf("generate: parseSections: %v\n", err)
 	}
 	datafile.Sections = sections
 
@@ -69,7 +69,7 @@ func main() {
 
 	stories, err := parseStories(lang)
 	if err != nil {
-		log.Fatalf("parseStories(): %v\n", err)
+		log.Fatalf("generate: parseStories(): %v\n", err)
 	}
 	datafile.Stories = stories
 
@@ -81,103 +81,77 @@ func main() {
 
 	dataJSONFile, err := createOutputDir(regionID)
 	if err != nil {
-		log.Fatalf("createOutputDir(): %v\n", err)
+		log.Fatalf("generate: createOutputDir(): %v\n", err)
 	}
 
-	b, err := json.MarshalIndent(datafile, "", "	")
-	check(err)
+	data, err := json.MarshalIndent(datafile, "", "	")
+	if err != nil {
+		log.Fatalf("generate: failed to marshal datafile to JSON: %v\n", err)
+	}
 
-	n, err := dataJSONFile.Write(b)
-	check(err)
+	n, err := dataJSONFile.Write(data)
+	if err != nil {
+		log.Fatalf("generate: failed to write data to the JSON file: %v\n", err)
+	}
+	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 
 	for _, section := range sections {
-		err = copyImages(&section)
-		if err != nil {
-			log.Fatalf("copyImages: %v\n", err)
+		for _, path := range section.ImagesPaths() {
+			_, err = copyImage(regionID, path)
+			if err != nil {
+				log.Fatalf("generate: %v\n", err)
+			}
 		}
 	}
 
-	err = copyMarkdownFiles(&stories)
+	for _, story := range stories {
+		_, err := copyMarkdown(regionID, story.MarkdownPath())
+		if err != nil {
+			log.Fatalf("generate: failed to copy markdown file for story %s: %v\n", story.ID, err)
+		}
+
+		for _, path := range story.ImagesPaths() {
+			_, err := copyImage(regionID, path)
+			if err != nil {
+				log.Fatalf("generate: failed to copy image for story %s: %v\n", story.ID, err)
+			}
+		}
+	}
+}
+
+func copyImage(regionID string, srcPath string) (int, error) {
+	n, err := copyFile(regionID, srcPath, "images")
+	return n, err
+}
+
+func copyMarkdown(regionID string, srcPath string) (int, error) {
+	n, err := copyFile(regionID, srcPath, "stories")
+	return n, err
+}
+
+func copyFile(regionID string, srcPath string, subdir string) (int, error) {
+	wd, err := os.Getwd()
 	if err != nil {
-		log.Fatalf("copyMarkdownFiles: %v\n", err)
+		return 0, errors.Wrap(err, "failed to get working dir")
 	}
 
-	// TODO err = copyImages(&images)
-
-	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
-}
-
-func copyImages(section *internal.Section) error {
-	var wrote int64
-	for _, srcPath := range section.ImagesPaths() {
-		wd, err := os.Getwd()
-		if err != nil {
-			return errors.Wrap(err, "failed to get working directory")
-		}
-
-		dstPath := wd + "/generated/" + regionID + "/images/" + filepath.Base(srcPath)
-		src, err := os.Open(srcPath)
-		if err != nil {
-			return errors.Errorf("failed to open image file at %s", srcPath)
-		}
-
-		dst, err := os.Create(dstPath)
-		if err != nil {
-			return errors.Errorf("failed to create dst file at %s", dstPath)
-		}
-
-		n, err := io.Copy(dst, src)
-		if err != nil {
-			return errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
-		}
-		wrote += n
+	dstPath := wd + "/generated/" + regionID + "/" + subdir + "/" + filepath.Base(srcPath)
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return 0, errors.Errorf("failed to open src file at %s", srcPath)
 	}
 
-	fmt.Printf("generate: copied section %s, %.1f MB of images copied, ", section.ID, float32(wrote)/1000_000)
-	if len(section.ImagesPaths()) > 0 {
-		fmt.Printf("has %d images\n", len(section.ImagesPaths()))
-	} else {
-		fmt.Printf("has no images\n")
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		return 0, errors.Errorf("failed to create dst file at %s", dstPath)
 	}
 
-	return nil
-}
-
-// Must be run from this project's root dir.
-func copyMarkdownFiles(stories *[]internal.Story) error {
-	for _, story := range *stories {
-		wd, err := os.Getwd()
-		if err != nil {
-			return errors.Wrap(err, "failed to get working directory")
-		}
-
-		srcPath := wd + "/database/" + regionID + "/stories/" + story.ID + "/" + lang + "/" + story.MarkdownFile
-		dstPath := wd + "/generated/" + regionID + "/stories/" + story.MarkdownFile
-
-		src, err := os.Open(srcPath)
-		if err != nil {
-			return errors.Errorf("failed to open markdown file at %s", srcPath)
-		}
-
-		dst, err := os.Create(dstPath)
-		if err != nil {
-			return errors.Errorf("failed to create dst file at %s", dstPath)
-		}
-
-		n, err := io.Copy(dst, src)
-		if err != nil {
-			return errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
-		}
-
-		fmt.Printf("generate: copied story %s, %.1f KB of text copied, ", story.ID, float32(n)/1000)
-		if len(story.Images) > 0 {
-			fmt.Printf("has %d images\n", len(story.Images))
-		} else {
-			fmt.Printf("has no images\n")
-		}
+	n, err := io.Copy(dst, src)
+	if err != nil {
+		return 0, errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
 	}
 
-	return nil
+	return int(n), nil
 }
 
 // CreateOutputDir creates a datafile directory structure inside generated/ in project root.

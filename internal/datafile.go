@@ -218,9 +218,9 @@ func (p *Place) Parse(lang string) error {
 }
 
 func (p *Place) makeImagesPaths(quality Quality) error {
-	cwd, err := os.Getwd()
+	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get working dir")
 	}
 
 	var qualityDir string
@@ -232,7 +232,7 @@ func (p *Place) makeImagesPaths(quality Quality) error {
 
 	// s.Images were set when the story was parsed from its JSON.
 	for _, image := range p.Images {
-		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
+		absPath := filepath.Join(wd, "images/", qualityDir, "/"+image+".webp")
 
 		if _, err := os.Stat(absPath); err != nil {
 			return errors.Errorf("image at %s does not exist!\n", absPath)
@@ -297,9 +297,10 @@ func (t *Track) Parse(lang string) error {
 
 // Story represents a longer piece of text about a particular topic.
 type Story struct {
-	ID           string   `json:"id"`
-	Name         string   `json:"name"`
-	MarkdownFile string   `json:"markdown_filename"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	MarkdownFile string `json:"markdown_filename"`
+	markdownPath string
 	Images       []string `json:"images"`
 	imagesPaths  []string
 }
@@ -324,9 +325,27 @@ func (s *Story) Parse(lang string) error {
 		return err
 	}
 
-	err = s.makeImagesPaths(Compressed)
+	err = s.makeMarkdownPath(lang)
+	if err != nil {
+		return errors.Wrap(err, "makeMarkdownPath")
+	}
 
-	return err
+	err = s.makeImagesPaths(Compressed)
+	if err != nil {
+		return errors.Wrap(err, "makeImagesPath")
+	}
+
+	return nil
+}
+
+func (s *Story) makeMarkdownPath(lang string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return errors.Wrap(err, "failed to get working dir")
+	}
+
+	s.markdownPath = wd + "/" + lang + "/" + s.MarkdownFile + ".md"
+	return nil
 }
 
 func (s *Story) makeImagesPaths(quality Quality) error {
@@ -355,6 +374,12 @@ func (s *Story) makeImagesPaths(quality Quality) error {
 // specific to your machine!
 func (s *Story) ImagesPaths() []string {
 	return s.imagesPaths
+}
+
+// MarkdownPath returns path to the story's markdown file.
+// It is specific to your machine.
+func (s *Story) MarkdownPath() string {
+	return s.markdownPath
 }
 
 // Dayroom represents a place run by local community.
