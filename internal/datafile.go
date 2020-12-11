@@ -119,6 +119,14 @@ func (s *Section) Parse(lang string) error {
 
 	s.Places = places
 
+	fmt.Println("generate: section", s.ID)
+	for _, place := range s.Places {
+		fmt.Println("generate: place", place.ID)
+		for i, path := range place.imagesPaths {
+			fmt.Printf("%d: %s\n", i, path)
+		}
+	}
+
 	return err
 }
 
@@ -137,6 +145,7 @@ type Place struct {
 	Headers     []string `json:"headers"`
 	Content     []string `json:"content"`
 	Images      []string `json:"images"`
+	imagesPaths []string
 }
 
 // Parse parses place data from its directory and assigns
@@ -184,8 +193,46 @@ func (p *Place) Parse(lang string) error {
 	}
 
 	err = json.Unmarshal(data, p)
+	if err != nil {
+		return err
+	}
+
+	p.makeImagesPaths(Compressed)
 
 	return err
+}
+
+func (p *Place) makeImagesPaths(quality Quality) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	var qualityDir string
+	if quality == Compressed {
+		qualityDir = "compressed"
+	} else if quality == Original {
+		qualityDir = "original"
+	}
+
+	// s.Images were set when the story was parsed from its JSON.
+	for _, image := range p.Images {
+		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
+
+		if _, err := os.Stat(absPath); err != nil {
+			fmt.Printf("generate: error: image at %s does not exist!\n", absPath)
+		}
+
+		p.imagesPaths = append(p.imagesPaths, absPath)
+	}
+
+	return nil
+}
+
+// ImagesPaths returns paths of all images of place p. They are
+// specific to your machine!
+func (p *Place) ImagesPaths() []string {
+	return p.imagesPaths
 }
 
 // Track represents a bike trail or some other "long" geographical object.
