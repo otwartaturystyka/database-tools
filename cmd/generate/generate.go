@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"
@@ -57,9 +58,8 @@ func main() {
 	datafile.Meta = meta
 
 	sections, err := parseSections(lang)
-	check(err)
 	if err != nil {
-		log.Fatalf("createOutputDir: %+v\n", err)
+		log.Fatalf("parseSections: %v\n", err)
 	}
 	datafile.Sections = sections
 
@@ -68,7 +68,9 @@ func main() {
 	datafile.Tracks = tracks
 
 	stories, err := parseStories(lang)
-	check(err)
+	if err != nil {
+		log.Fatalf("parseStories(): %v\n", err)
+	}
 	datafile.Stories = stories
 
 	dayrooms, err := parseDayrooms(lang)
@@ -88,15 +90,56 @@ func main() {
 	n, err := dataJSONFile.Write(b)
 	check(err)
 
+	for _, section := range sections {
+		err = copyImages(&section)
+		if err != nil {
+			log.Fatalf("copyImages: %v\n", err)
+		}
+	}
+
 	err = copyMarkdownFiles(&stories)
-	check(err)
+	if err != nil {
+		log.Fatalf("copyMarkdownFiles: %v\n", err)
+	}
 
 	// TODO err = copyImages(&images)
 
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
 
-func copyImages(places *[]internal.Place) error {
+func copyImages(section *internal.Section) error {
+	var wrote int64
+	for _, srcPath := range section.ImagesPaths() {
+		wd, err := os.Getwd()
+		if err != nil {
+			return errors.Wrap(err, "failed to get working directory")
+		}
+
+		dstPath := wd + "/generated/" + regionID + "/images/" + filepath.Base(srcPath)
+		src, err := os.Open(srcPath)
+		if err != nil {
+			return errors.Errorf("failed to open image file at %s", srcPath)
+		}
+
+		dst, err := os.Create(dstPath)
+		if err != nil {
+			return errors.Errorf("failed to create dst file at %s", dstPath)
+		}
+
+		n, err := io.Copy(dst, src)
+		if err != nil {
+			return errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
+		}
+		wrote += n
+	}
+
+	fmt.Printf("generate: copied section %s, %.1f MB of images copied, ", section.ID, float32(wrote)/1000_000)
+	if len(section.ImagesPaths()) > 0 {
+		fmt.Printf("has %d images\n", len(section.ImagesPaths()))
+	} else {
+		fmt.Printf("has no images\n")
+	}
+
 	return nil
 }
 
@@ -122,7 +165,9 @@ func copyMarkdownFiles(stories *[]internal.Story) error {
 		}
 
 		n, err := io.Copy(dst, src)
-		check(err)
+		if err != nil {
+			return errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
+		}
 
 		fmt.Printf("generate: copied story %s, %.1f KB of text copied, ", story.ID, float32(n)/1000)
 		if len(story.Images) > 0 {

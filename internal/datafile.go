@@ -64,35 +64,53 @@ type Parseable interface {
 
 // Section represents places of similiar type and associated metadata.
 type Section struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Icon      string  `json:"icon"`
-	BgImage   string  `json:"background_image"`
-	QuickInfo string  `json:"quick_info"`
-	Places    []Place `json:"places"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Icon        string  `json:"icon"`
+	BgImage     string  `json:"background_image"`
+	QuickInfo   string  `json:"quick_info"`
+	Places      []Place `json:"places"`
+	imagesPaths []string
+}
+
+func (section *Section) makeImagePaths() {
+	for _, place := range section.Places {
+		for _, imagePath := range place.imagesPaths {
+			section.imagesPaths = append(section.imagesPaths, imagePath)
+		}
+	}
+}
+
+// ImagesPaths returns paths of all images of place p. They are
+// specific to your machine!
+func (section *Section) ImagesPaths() []string {
+	return section.imagesPaths
 }
 
 // Parse parses section data from its directory and assigns
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
-func (s *Section) Parse(lang string) error {
+func (section *Section) Parse(lang string) error {
 	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
 	}
-	s.Name = string(name)
+	section.Name = string(name)
 
 	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
-	s.QuickInfo = string(quickInfo)
+	section.QuickInfo = string(quickInfo)
 
 	data, err := readFromFile("data.json")
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(data, s)
+	err = json.Unmarshal(data, section)
+	if err != nil {
+		return err
+	}
 
 	// Parse places.
 	places := make([]Place, 0, 50)
@@ -107,7 +125,7 @@ func (s *Section) Parse(lang string) error {
 		var place Place
 		err = place.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "error parsing %s", path)
+			return errors.Wrapf(err, "parse place at %s", path)
 		}
 		os.Chdir("../..")
 
@@ -116,20 +134,15 @@ func (s *Section) Parse(lang string) error {
 	}
 
 	err = filepath.Walk("places", placesWalker)
+	if err != nil {
+		return errors.Wrap(err, "walk places")
+	}
 
-	s.Places = places
+	section.Places = places
 
-	/*
-		fmt.Println("generate: section", s.ID)
-		for _, place := range s.Places {
-			fmt.Println("generate: place", place.ID)
-			for _, path := range place.imagesPaths {
-				fmt.Printf("generate: %s\n", path)
-			}
-		}
-	*/
+	section.makeImagePaths()
 
-	return err
+	return nil
 }
 
 // Place represents single place in real world.
@@ -311,7 +324,7 @@ func (s *Story) Parse(lang string) error {
 		return err
 	}
 
-	s.makeImagesPaths(Compressed)
+	err = s.makeImagesPaths(Compressed)
 
 	return err
 }
