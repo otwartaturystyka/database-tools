@@ -122,8 +122,8 @@ func (s *Section) Parse(lang string) error {
 	fmt.Println("generate: section", s.ID)
 	for _, place := range s.Places {
 		fmt.Println("generate: place", place.ID)
-		for i, path := range place.imagesPaths {
-			fmt.Printf("%d: %s\n", i, path)
+		for _, path := range place.imagesPaths {
+			fmt.Printf("generate: %s\n", path)
 		}
 	}
 
