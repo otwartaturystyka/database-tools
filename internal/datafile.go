@@ -232,7 +232,7 @@ func (p *Place) makeImagesPaths(quality Quality) error {
 
 	// s.Images were set when the story was parsed from its JSON.
 	for _, image := range p.Images {
-		absPath := filepath.Join(wd, "images/", qualityDir, "/"+image+".webp")
+		absPath := filepath.Join(wd, "images", qualityDir, image+".webp")
 
 		if _, err := os.Stat(absPath); err != nil {
 			return errors.Errorf("image at %s does not exist!\n", absPath)
@@ -240,6 +240,10 @@ func (p *Place) makeImagesPaths(quality Quality) error {
 
 		p.imagesPaths = append(p.imagesPaths, absPath)
 	}
+
+	// Add icon.
+	iconPath := filepath.Join(wd, "images", qualityDir, p.Icon+".webp")
+	p.imagesPaths = append(p.imagesPaths, iconPath)
 
 	return nil
 }
