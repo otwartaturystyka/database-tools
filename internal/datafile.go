@@ -242,25 +242,6 @@ type Story struct {
 	imagesPaths  []string
 }
 
-func (s *Story) makeImagesPaths() error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	for _, image := range s.Images {
-		absPath := filepath.Join(cwd, "images/compressed/"+image+".webp")
-
-		s.imagesPaths = append(s.imagesPaths, absPath)
-	}
-
-	return nil
-}
-
-func (s *Story) ImagesPaths() []string {
-	return s.imagesPaths
-}
-
 // Parse parses story data from its directory and assigns
 // it to story pointed to by s. It must be used directly
 // in the tracks's directory.
@@ -281,9 +262,37 @@ func (s *Story) Parse(lang string) error {
 		return err
 	}
 
-	s.makeImagesPaths()
+	s.makeImagesPaths(Compressed)
 
 	return err
+}
+
+func (s *Story) makeImagesPaths(quality Quality) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	var qualityDir string
+	if quality == Compressed {
+		qualityDir = "compressed"
+	} else if quality == Original {
+		qualityDir = "original"
+	}
+
+	// s.Images were set when the story was parsed from its JSON.
+	for _, image := range s.Images {
+		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
+		s.imagesPaths = append(s.imagesPaths, absPath)
+	}
+
+	return nil
+}
+
+// ImagesPaths returns paths of all images of story s. They are
+// specific to your machine!
+func (s *Story) ImagesPaths() []string {
+	return s.imagesPaths
 }
 
 // Dayroom represents a place run by local community.
@@ -340,8 +349,9 @@ type Quality int
 
 const (
 	// Compressed quality is most often used.
-	Compressed = 1
-	Original   = 2
+	Compressed = iota + 1
+	// Original quality represents full, uncompressed image.
+	Original
 )
 
 // // Image represents a single image with some metadata *in the datafile*.

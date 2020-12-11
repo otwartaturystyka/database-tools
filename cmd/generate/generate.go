@@ -122,10 +122,6 @@ func copyMarkdownFiles(stories *[]internal.Story) error {
 		} else {
 			fmt.Printf("has no images\n")
 		}
-
-		for _, imagePath := range story.ImagesPaths() {
-			fmt.Println("story image path", imagePath)
-		}
 	}
 
 	return nil
