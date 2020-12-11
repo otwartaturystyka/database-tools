@@ -418,51 +418,54 @@ type Dayroom struct {
 // it to dayroom pointer to by d. It must be used directly
 // in the dayroom's directory, usually by using os.Chdir().
 func (dayroom *Dayroom) Parse(lang string) error {
-	nameFile, err := os.Open("content/" + lang + "/name.txt")
+	nameFilePath := "content/" + lang + "/name.txt"
+	nameFile, err := os.Open(nameFilePath)
 	if err != nil {
-		return errors.Wrap(err, "can't open dayroom name.txt")
+		return errors.Errorf("failed to open file %s", nameFilePath)
 	}
 	defer nameFile.Close()
 
 	name, err := ioutil.ReadAll(nameFile)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to read contents from file %s", nameFilePath)
 	}
 	dayroom.Name = string(name)
 
-	overviewFile, err := os.Open("content/" + lang + "/overview.txt")
+	overviewFilePath := "content/" + lang + "/overview.txt"
+	overviewFile, err := os.Open(overviewFilePath)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to open file %s", overviewFilePath)
 	}
 	defer overviewFile.Close()
 
 	overview, err := ioutil.ReadAll(overviewFile)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to read contents from file %s", nameFilePath)
 	}
 	dayroom.Overview = string(overview)
 
-	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
+	quickInfoFilePath := "content/" + lang + "/quick_info.txt"
+	quickInfoFile, err := os.Open(quickInfoFilePath)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to open file %s", quickInfoFilePath)
 	}
 	defer quickInfoFile.Close()
 
 	quickInfo, err := ioutil.ReadAll(quickInfoFile)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to read contents from file %s", quickInfoFilePath)
 	}
 	dayroom.QuickInfo = string(quickInfo)
 
 	jsonFile, err := os.Open("data.json")
 	if err != nil {
-		return err
+		return errors.Errorf("failed to open file data.json")
 	}
 	defer jsonFile.Close()
 
 	data, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		return err
+		return errors.Errorf("failed to read contents from file data.json")
 	}
 
 	err = json.Unmarshal(data, &dayroom)
