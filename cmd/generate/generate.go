@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/bartekpacia/database-tools/internal"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -50,11 +51,16 @@ func main() {
 	}
 
 	meta, err := parseMeta(lang)
-	check(err)
+	if err != nil {
+		log.Fatalln(errors.Unwrap(err))
+	}
 	datafile.Meta = meta
 
 	sections, err := parseSections(lang)
 	check(err)
+	if err != nil {
+		log.Fatalf("createOutputDir: %+v\n", err)
+	}
 	datafile.Sections = sections
 
 	tracks, err := parseTracks(lang)
@@ -72,7 +78,9 @@ func main() {
 	os.Chdir("../..")
 
 	dataJSONFile, err := createOutputDir(regionID)
-	check(err)
+	if err != nil {
+		log.Fatalf("createOutputDir(): %v\n", err)
+	}
 
 	b, err := json.MarshalIndent(datafile, "", "	")
 	check(err)
@@ -108,10 +116,15 @@ func copyMarkdownFiles(stories *[]internal.Story) error {
 		n, err := io.Copy(dst, src)
 		check(err)
 
-		fmt.Printf("generate: copied story %s, %d bytes copied\n", story.ID, n)
+		fmt.Printf("generate: copied story %s, %.1f KB of text copied, ", story.ID, float32(n)/1000)
+		if len(story.Images) > 0 {
+			fmt.Printf("has %d images\n", len(story.Images))
+		} else {
+			fmt.Printf("has no images\n")
+		}
 
-		for i, imagePath := range story.ImagesPaths() {
-			fmt.Println(i, ":", imagePath)
+		for _, imagePath := range story.ImagesPaths() {
+			fmt.Println("story image path", imagePath)
 		}
 	}
 
@@ -120,31 +133,43 @@ func copyMarkdownFiles(stories *[]internal.Story) error {
 
 // CreateOutputDir creates a datafile directory structure inside generated/ in project root.
 func createOutputDir(regionID string) (*os.File, error) {
-	outputDirPath := "generated/" + regionID
+	generatedPath := "generated"
+	outputDirPath := generatedPath + "/" + regionID
+
+	if _, err := os.Stat(generatedPath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, errors.Errorf("dir %#v does not exist", generatedPath)
+		}
+
+		return nil, errors.Errorf("failed to stat %#v dir", generatedPath)
+	}
 
 	err := os.RemoveAll(outputDirPath)
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to remove output dir %#v", outputDirPath)
 	}
 
 	err = os.Mkdir(outputDirPath, 0755)
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to make dir %#v", outputDirPath)
 	}
 
-	err = os.Mkdir(outputDirPath+"/images", 0755)
+	imagesDirPath := outputDirPath + "/images"
+	err = os.Mkdir(imagesDirPath, 0755)
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to make dir %#v (for images)", imagesDirPath)
 	}
 
-	err = os.Mkdir(outputDirPath+"/stories", 0755)
+	storiesDirPath := outputDirPath + "/stories"
+	err = os.Mkdir(storiesDirPath, 0755)
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to make dir %#v (for stories)", storiesDirPath)
 	}
 
-	dataJSONFile, err := os.Create("generated/" + regionID + "/data.json")
+	dataJSONPath := outputDirPath + "/data.json"
+	dataJSONFile, err := os.Create(dataJSONPath)
 	if err != nil {
-		return nil, err
+		return nil, errors.Errorf("failed to create file %#v (the main json file)", dataJSONPath)
 	}
 
 	return dataJSONFile, nil

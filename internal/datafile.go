@@ -42,7 +42,7 @@ func (m *Meta) Parse(lang string) error {
 
 	nameFile, err := os.Open(lang + "/name.txt")
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "file meta/%s/name.txt doesn't exist", lang)
 	}
 	defer nameFile.Close()
 
@@ -92,7 +92,7 @@ type Section struct {
 func (s *Section) Parse(lang string) error {
 	nameFile, err := os.Open("content/" + lang + "/name.txt")
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	defer nameFile.Close()
 
@@ -139,7 +139,7 @@ func (s *Section) Parse(lang string) error {
 		var place Place
 		err = place.Parse(lang)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "error parsing %s", path)
 		}
 		os.Chdir("../..")
 
@@ -177,13 +177,13 @@ type Place struct {
 func (p *Place) Parse(lang string) error {
 	nameFile, err := os.Open("content/" + lang + "/name.txt")
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	defer nameFile.Close()
 
 	name, err := ioutil.ReadAll(nameFile)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	p.Name = string(name)
 
@@ -352,7 +352,7 @@ func (s *Story) makeImagesPaths() error {
 	}
 
 	for _, image := range s.Images {
-		absPath := filepath.Join(cwd, "images/"+image+".webp")
+		absPath := filepath.Join(cwd, "images/compressed/"+image+".webp")
 
 		s.imagesPaths = append(s.imagesPaths, absPath)
 	}
@@ -420,7 +420,7 @@ type Dayroom struct {
 func (dayroom *Dayroom) Parse(lang string) error {
 	nameFile, err := os.Open("content/" + lang + "/name.txt")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "can't open dayroom name.txt")
 	}
 	defer nameFile.Close()
 

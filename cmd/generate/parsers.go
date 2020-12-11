@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bartekpacia/database-tools/internal"
+	"github.com/pkg/errors"
 )
 
 func parseMeta(lang string) (internal.Meta, error) {
@@ -33,7 +34,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 		var section internal.Section
 		err = section.Parse(lang)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "path: %s", path)
 		}
 		os.Chdir("../..")
 
