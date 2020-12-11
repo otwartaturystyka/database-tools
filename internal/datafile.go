@@ -1,10 +1,8 @@
 package internal
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,30 +38,18 @@ type Meta struct {
 func (m *Meta) Parse(lang string) error {
 	m.GeneratedAt = time.Now().Round(time.Minute).UTC()
 
-	nameFile, err := os.Open(lang + "/name.txt")
-	if err != nil {
-		return errors.Wrapf(err, "file meta/%s/name.txt doesn't exist", lang)
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
+	name, err := readFromFile(lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	m.RegionName = string(name)
 
-	dataFile, err := os.Open("data.json")
-	if err != nil {
-		return err
-	}
-	defer dataFile.Close()
-
-	b, err := ioutil.ReadAll(dataFile)
+	data, err := readFromFile("data.json")
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(b, &m)
+	err = json.Unmarshal(data, &m)
 	if err != nil {
 		return err
 	}
@@ -90,41 +76,23 @@ type Section struct {
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
 func (s *Section) Parse(lang string) error {
-	nameFile, err := os.Open("content/" + lang + "/name.txt")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
+	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	s.Name = string(name)
 
-	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
-	if err != nil {
-		return err
-	}
-	defer quickInfoFile.Close()
-
-	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
 	s.QuickInfo = string(quickInfo)
 
-	jsonFile, err := os.Open("data.json")
+	data, err := readFromFile("data.json")
 	if err != nil {
 		return err
 	}
-	defer jsonFile.Close()
-
-	b, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(b, s)
+	err = json.Unmarshal(data, s)
 
 	// Parse places.
 	places := make([]Place, 0, 50)
@@ -175,37 +143,19 @@ type Place struct {
 // it to track pointed to by p. It must be used directly
 // in the place's directory.
 func (p *Place) Parse(lang string) error {
-	nameFile, err := os.Open("content/" + lang + "/name.txt")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	p.Name = string(name)
-
-	quickInfoFile, err := os.Open("content/" + lang + "/quick_info.txt")
+	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
 	}
-	defer quickInfoFile.Close()
+	p.Name = string(name)
 
-	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
 	p.QuickInfo = string(quickInfo)
 
-	overviewFile, err := os.Open("content/" + lang + "/overview.txt")
-	if err != nil {
-		return err
-	}
-	defer overviewFile.Close()
-
-	overview, err := ioutil.ReadAll(overviewFile)
+	overview, err := readFromFile("content/" + lang + "/overview.txt")
 	if err != nil {
 		return err
 	}
@@ -228,46 +178,17 @@ func (p *Place) Parse(lang string) error {
 		p.Content = append(p.Content, content)
 	}
 
-	jsonFile, err := os.Open("data.json")
-	if err != nil {
-		return err
-	}
-	defer jsonFile.Close()
-
-	b, err := ioutil.ReadAll(jsonFile)
+	data, err := readFromFile("data.json")
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(b, p)
+	err = json.Unmarshal(data, p)
 
 	return err
 }
 
-func readTextualData(file *os.File) (header string, content string, err error) {
-	reader := bufio.NewReader(file)
-	header, err = reader.ReadString('\n')
-	if err != nil {
-		err = errors.Wrap(err, "reading header failed")
-		return
-	}
-
-	reader.ReadString('\n')
-	if err != nil {
-		err = errors.Wrap(err, "reading 3-slash divider failed")
-		return
-	}
-
-	content, err = reader.ReadString('\n')
-	if err != nil {
-		err = errors.Wrap(err, "reading content from failed")
-		return
-	}
-
-	return
-}
-
-// Track represents a bike trail.
+// Track represents a bike trail or some other "long" geographical object.
 type Track struct {
 	ID        string   `json:"id"`
 	Name      string   `json:"name"`
@@ -284,54 +205,30 @@ type Track struct {
 // it to track pointed to by t. It must be used directly
 // in the track's directory, usually by using os.Chdir().
 func (t *Track) Parse(lang string) error {
-	jsonFile, err := os.Open("data.json")
-	if err != nil {
-		return err
-	}
-	defer jsonFile.Close()
-
-	b, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		return err
-	}
-
-	nameFile, err := os.Open(lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
+	name, err := readFromFile(lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	t.Name = string(name)
 
-	overviewFile, err := os.Open(lang + "/overview.txt")
-	if err != nil {
-		return err
-	}
-	defer overviewFile.Close()
-
-	overview, err := ioutil.ReadAll(overviewFile)
+	overview, err := readFromFile(lang + "/overview.txt")
 	if err != nil {
 		return err
 	}
 	t.Overview = string(overview)
 
-	quickInfoFile, err := os.Open(lang + "/quick_info.txt")
-	if err != nil {
-		return err
-	}
-	defer quickInfoFile.Close()
-
-	quickInfo, err := ioutil.ReadAll(quickInfoFile)
+	quickInfo, err := readFromFile(lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
 	t.QuickInfo = string(quickInfo)
 
-	err = json.Unmarshal(b, t)
+	data, err := readFromFile("data.json")
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, t)
 
 	return err
 }
@@ -368,29 +265,18 @@ func (s *Story) ImagesPaths() []string {
 // it to story pointed to by s. It must be used directly
 // in the tracks's directory.
 func (s *Story) Parse(lang string) error {
-	nameFile, err := os.Open(lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
+	name, err := readFromFile(lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	s.Name = string(name)
 
-	jsonFile, err := os.Open("data.json")
+	data, err := readFromFile("data.json")
 	if err != nil {
 		return err
 	}
-	defer jsonFile.Close()
 
-	b, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(b, s)
+	err = json.Unmarshal(data, s)
 	if err != nil {
 		return err
 	}
@@ -418,54 +304,27 @@ type Dayroom struct {
 // it to dayroom pointer to by d. It must be used directly
 // in the dayroom's directory, usually by using os.Chdir().
 func (dayroom *Dayroom) Parse(lang string) error {
-	nameFilePath := "content/" + lang + "/name.txt"
-	nameFile, err := os.Open(nameFilePath)
+	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
-		return errors.Errorf("failed to open file %s", nameFilePath)
-	}
-	defer nameFile.Close()
-
-	name, err := ioutil.ReadAll(nameFile)
-	if err != nil {
-		return errors.Errorf("failed to read contents from file %s", nameFilePath)
+		return err
 	}
 	dayroom.Name = string(name)
 
-	overviewFilePath := "content/" + lang + "/overview.txt"
-	overviewFile, err := os.Open(overviewFilePath)
+	overview, err := readFromFile("content/" + lang + "/overview.txt")
 	if err != nil {
-		return errors.Errorf("failed to open file %s", overviewFilePath)
-	}
-	defer overviewFile.Close()
-
-	overview, err := ioutil.ReadAll(overviewFile)
-	if err != nil {
-		return errors.Errorf("failed to read contents from file %s", nameFilePath)
+		return err
 	}
 	dayroom.Overview = string(overview)
 
-	quickInfoFilePath := "content/" + lang + "/quick_info.txt"
-	quickInfoFile, err := os.Open(quickInfoFilePath)
+	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
-		return errors.Errorf("failed to open file %s", quickInfoFilePath)
-	}
-	defer quickInfoFile.Close()
-
-	quickInfo, err := ioutil.ReadAll(quickInfoFile)
-	if err != nil {
-		return errors.Errorf("failed to read contents from file %s", quickInfoFilePath)
+		return err
 	}
 	dayroom.QuickInfo = string(quickInfo)
 
-	jsonFile, err := os.Open("data.json")
+	data, err := readFromFile("data.json")
 	if err != nil {
-		return errors.Errorf("failed to open file data.json")
-	}
-	defer jsonFile.Close()
-
-	data, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		return errors.Errorf("failed to read contents from file data.json")
+		return err
 	}
 
 	err = json.Unmarshal(data, &dayroom)
