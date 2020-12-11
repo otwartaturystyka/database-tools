@@ -119,13 +119,15 @@ func (s *Section) Parse(lang string) error {
 
 	s.Places = places
 
-	fmt.Println("generate: section", s.ID)
-	for _, place := range s.Places {
-		fmt.Println("generate: place", place.ID)
-		for _, path := range place.imagesPaths {
-			fmt.Printf("generate: %s\n", path)
+	/*
+		fmt.Println("generate: section", s.ID)
+		for _, place := range s.Places {
+			fmt.Println("generate: place", place.ID)
+			for _, path := range place.imagesPaths {
+				fmt.Printf("generate: %s\n", path)
+			}
 		}
-	}
+	*/
 
 	return err
 }
@@ -197,7 +199,7 @@ func (p *Place) Parse(lang string) error {
 		return err
 	}
 
-	p.makeImagesPaths(Compressed)
+	err = p.makeImagesPaths(Compressed)
 
 	return err
 }
@@ -220,7 +222,7 @@ func (p *Place) makeImagesPaths(quality Quality) error {
 		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
 
 		if _, err := os.Stat(absPath); err != nil {
-			fmt.Printf("generate: error: image at %s does not exist!\n", absPath)
+			return errors.Errorf("image at %s does not exist!\n", absPath)
 		}
 
 		p.imagesPaths = append(p.imagesPaths, absPath)

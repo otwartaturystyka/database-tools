@@ -96,22 +96,30 @@ func main() {
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 }
 
-// func copyImages(images )
+func copyImages(places *[]internal.Place) error {
+	return nil
+}
 
 // Must be run from this project's root dir.
 func copyMarkdownFiles(stories *[]internal.Story) error {
 	for _, story := range *stories {
 		wd, err := os.Getwd()
-		check(err)
+		if err != nil {
+			return errors.Wrap(err, "failed to get working directory")
+		}
 
 		srcPath := wd + "/database/" + regionID + "/stories/" + story.ID + "/" + lang + "/" + story.MarkdownFile
 		dstPath := wd + "/generated/" + regionID + "/stories/" + story.MarkdownFile
 
 		src, err := os.Open(srcPath)
-		check(err)
+		if err != nil {
+			return errors.Errorf("failed to open markdown file at %s", srcPath)
+		}
 
 		dst, err := os.Create(dstPath)
-		check(err)
+		if err != nil {
+			return errors.Errorf("failed to create dst file at %s", dstPath)
+		}
 
 		n, err := io.Copy(dst, src)
 		check(err)
