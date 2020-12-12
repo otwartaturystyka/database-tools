@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 
 const (
 	bucketName = "discoverrudy.appspot.com"
-	appspotURL = "https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static"
+	appspotURL = "https://firebasestorage.googleapis.com/v0/b/" + bucketName + "/o/static"
 )
 
 var (
@@ -68,28 +69,31 @@ func main() {
 	}
 
 	zipFilePath := "compressed/" + regionID + ".zip"
-	fileInfo, err := os.Stat(zipFilePath)
+	zipFileInfo, err := os.Stat(zipFilePath)
 	if os.IsNotExist(err) {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
-
-	regionName := "TODO"
 
 	meta, err := parseMeta(regionID, lang)
 	if err != nil {
 		log.Fatalln("upload: error parsing meta:", err)
 	}
 
-	storagePrefix := regionID
+	regionPrefix := regionID
 	datafilesCollection := "datafiles"
 	if !noTest {
-		storagePrefix += "Test"
+		regionPrefix += "Test"
 		datafilesCollection += "Test"
 	}
 
-	fileURL := fmt.Sprintf("%s/%s/%s?alt=media", appspotURL, storagePrefix, fileInfo.Name())
-	thumbURL := fmt.Sprintf("%s/%s/thumb.webp?alt=media", appspotURL, storagePrefix)
-	thumbMiniURL := fmt.Sprintf("%s/%s/thumb_mini.webp?alt=media", appspotURL, storagePrefix)
+	// https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static %2Frudy%2Frudy.zip?alt=media
+	fileLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/"+zipFileInfo.Name()) + "?alt=media"
+	thumbLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb.webp") + "?alt=media"
+	thumbMiniLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb_mini.webp") + "?alt=media"
+
+	fmt.Println("fileLocation:", fileLocation)
+	fmt.Println("thumbLocation:", thumbLocation)
+	fmt.Println("thumbMiniLocation:", thumbMiniLocation)
 
 	fmt.Printf("upload: begin making thumb blurhash...")
 	thumbBlurhash, err := makeThumbBlurhash(regionID)
@@ -103,16 +107,16 @@ func main() {
 	datafileData := internal.FirestoreDatafile{
 		Available:        true,
 		Featured:         meta.Featured,
-		FileSize:         fileInfo.Size(),
-		FileURL:          fileURL,
+		FileSize:         zipFileInfo.Size(),
+		FileURL:          fileLocation,
 		LastUploadedTime: time.Time{},
 		Position:         1, // TODO: Handle position
 		RegionID:         regionID,
-		RegionName:       regionName,
+		RegionName:       meta.RegionName,
 		IsTestVersion:    !noTest,
 		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     thumbMiniURL,
-		ThumbURL:         thumbURL,
+		ThumbMiniURL:     thumbMiniLocation,
+		ThumbURL:         thumbLocation,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
@@ -136,7 +140,7 @@ func main() {
 	if !onlyMeta {
 		func() {
 			localPath := "compressed/" + regionID + ".zip"
-			cloudPath := "static/" + storagePrefix + "/rudy.zip"
+			cloudPath := "static/" + regionPrefix + "/rudy.zip"
 			upload(localPath, cloudPath, "application/zip")
 		}()
 	}
@@ -144,14 +148,14 @@ func main() {
 	// Upload thumb
 	func() {
 		localPath := "database/" + regionID + "/meta/thumb.webp"
-		cloudPath := "static/" + storagePrefix + "/thumb.webp"
+		cloudPath := "static/" + regionPrefix + "/thumb.webp"
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
 	// Upload minified thumb
 	func() {
 		localPath := "database/" + regionID + "/meta/thumb_mini.webp"
-		cloudPath := "static/" + storagePrefix + "/thumb_mini.webp"
+		cloudPath := "static/" + regionPrefix + "/thumb_mini.webp"
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
