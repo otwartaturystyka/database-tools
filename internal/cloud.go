@@ -4,16 +4,16 @@ import "time"
 
 // FirestoreDatafile represents a document in /datafiles collection in Firestore.
 type FirestoreDatafile struct {
-	Available        bool      `firestore:"available,omitempty"`
-	Featured         []string  `firestore:"featured,omitempty"`
-	FileSize         int64     `firestore:"fileSize,omitempty"`
-	FileURL          string    `firestore:"fileURL,omitempty"`
+	Available        bool      `firestore:"available"`
+	Featured         []string  `firestore:"featured"`
+	FileSize         int64     `firestore:"fileSize"`
+	FileURL          string    `firestore:"fileURL"`
 	LastUploadedTime time.Time `firestore:"lastUploadedTime,serverTimestamp"`
-	Position         int       `firestore:"position,omitempty"`
-	RegionID         string    `firestore:"regionID,omitempty"`
-	RegionName       string    `firestore:"regionName,omitempty"`
-	IsTestVersion    bool      `firestore:"isTestVersion,omitempty"`
-	ThumbBlurhash    string    `firestore:"thumbBlurhash,omitempty"`
-	ThumbMiniURL     string    `firestore:"thumbMiniURL,omitempty"`
-	ThumbURL         string    `firestore:"thumbURL,omitempty"`
+	Position         int       `firestore:"position"`
+	RegionID         string    `firestore:"regionID"`
+	RegionName       string    `firestore:"regionName"`
+	IsTestVersion    bool      `firestore:"isTestVersion"`
+	ThumbBlurhash    string    `firestore:"thumbBlurhash"`
+	ThumbMiniURL     string    `firestore:"thumbMiniURL"`
+	ThumbURL         string    `firestore:"thumbURL"`
 }
