@@ -8,7 +8,7 @@ type FirestoreDatafile struct {
 	Featured         []string  `firestore:"featured,omitempty"`
 	FileSize         int64     `firestore:"fileSize,omitempty"`
 	FileURL          string    `firestore:"fileURL,omitempty"`
-	LastUploadedTime time.Time `firestore:"time,serverTimestamp"`
+	LastUploadedTime time.Time `firestore:"lastUploadedTime,serverTimestamp"`
 	Position         int       `firestore:"position,omitempty"`
 	RegionID         string    `firestore:"regionID,omitempty"`
 	RegionName       string    `firestore:"regionName,omitempty"`

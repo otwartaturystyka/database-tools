@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bartekpacia/database-tools/internal"
+	"github.com/pkg/errors"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
@@ -27,6 +28,7 @@ var (
 	regionID string
 	lang     string
 	position int
+	onlyMeta bool
 	verbose  bool
 	test     bool
 )
@@ -41,6 +43,7 @@ func init() {
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")
+	flag.BoolVar(&onlyMeta, "only-meta", false, "true to upload only metadata (not the .zip file)")
 	flag.BoolVar(&test, "test", true, "whether to upload to the test collection in Firestore")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
 
@@ -120,16 +123,24 @@ func main() {
 	fmt.Println(string(datafileDataJSON))
 
 	fmt.Println("upload: continue? (Y/n)")
-	if !askForConfirmation() {
-		log.Fatalln("upload: operation canceled")
+	accepted, err := askForConfirmation()
+	if err != nil {
+		log.Fatalf("upload: failed to get response: %v\n", err)
+	}
+
+	if !accepted {
+		fmt.Println("upload: operation canceled by the user")
+		os.Exit(0)
 	}
 
 	// Upload compressed datafile
-	func() {
-		localPath := "compressed/" + regionID + ".zip"
-		cloudPath := "static/" + storagePrefix + "/rudy.zip"
-		upload(localPath, cloudPath, "application/zip")
-	}()
+	if !onlyMeta {
+		func() {
+			localPath := "compressed/" + regionID + ".zip"
+			cloudPath := "static/" + storagePrefix + "/rudy.zip"
+			upload(localPath, cloudPath, "application/zip")
+		}()
+	}
 
 	// Upload thumb
 	func() {
@@ -151,20 +162,19 @@ func main() {
 	}
 }
 
-func askForConfirmation() bool {
+func askForConfirmation() (bool, error) {
 	var response string
-	_, err := fmt.Scanln(&response)
+	_, err := fmt.Scan(&response)
 	if err != nil {
-		log.Fatal(err)
+		return false, errors.WithStack(err)
 	}
 	if response == "y" || response == "Y" || response == "\n" {
-		return true
+		return true, nil
 	} else if response == "N" || response == "n" {
-		return false
+		return false, nil
 	}
 
-	fmt.Println("upload: unknown option selected. abort")
-	return false
+	return false, nil
 }
 
 // Upload uploads file at localPath to Cloud Storage at cloudPath.
