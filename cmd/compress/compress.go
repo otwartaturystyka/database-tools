@@ -40,7 +40,9 @@ func main() {
 
 	os.Chdir("database/")
 	wd, _ := os.Getwd()
-	fmt.Println("compress: changed working directory to", wd)
+	if verbose {
+		fmt.Println("compress: changed working directory to", wd)
+	}
 
 	_, err = os.Stat(regionID)
 	if os.IsNotExist(err) {
@@ -80,7 +82,10 @@ func main() {
 			log.Fatalf("compress: error creating a file in zip archive: %v\n", err)
 		}
 
-		fmt.Println(fmt.Sprint(i), path)
+		if verbose {
+			fmt.Printf("compress: compressing file %d at %s\n", i, path)
+		}
+
 		_, err = io.Copy(writer, file)
 		if err != nil {
 			log.Fatalf("compress: error copying file: %v\n", err)
@@ -96,4 +101,9 @@ func main() {
 	}
 
 	os.Chdir("..")
+	if verbose {
+		fmt.Println("compress: changed working directory back")
+	}
+
+	fmt.Println("compress: successfully compressed datafile", regionID)
 }
