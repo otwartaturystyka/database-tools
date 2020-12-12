@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/url"
 	"os"
 	"time"
 
@@ -30,7 +29,7 @@ var (
 	position int
 	onlyMeta bool
 	verbose  bool
-	test     bool
+	noTest   bool
 )
 
 var (
@@ -44,7 +43,7 @@ func init() {
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")
 	flag.BoolVar(&onlyMeta, "only-meta", false, "true to upload only metadata (not the .zip file)")
-	flag.BoolVar(&test, "test", true, "whether to upload to the test collection in Firestore")
+	flag.BoolVar(&noTest, "no-test", false, "true to upload to *production* collection in Firestore")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
 
 	opt := option.WithCredentialsFile("./key.json")
@@ -83,7 +82,7 @@ func main() {
 
 	storagePrefix := regionID
 	datafilesCollection := "datafiles"
-	if test {
+	if !noTest {
 		storagePrefix += "Test"
 		datafilesCollection += "Test"
 	}
@@ -105,15 +104,15 @@ func main() {
 		Available:        true,
 		Featured:         meta.Featured,
 		FileSize:         fileInfo.Size(),
-		FileURL:          url.QueryEscape(fileURL),
+		FileURL:          fileURL,
 		LastUploadedTime: time.Time{},
 		Position:         1, // TODO: Handle position
 		RegionID:         regionID,
 		RegionName:       regionName,
-		IsTestVersion:    test,
+		IsTestVersion:    !noTest,
 		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     url.QueryEscape(thumbMiniURL),
-		ThumbURL:         url.QueryEscape(thumbURL),
+		ThumbMiniURL:     thumbMiniURL,
+		ThumbURL:         thumbURL,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
