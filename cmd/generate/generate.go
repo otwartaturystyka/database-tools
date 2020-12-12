@@ -7,7 +7,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"
@@ -96,10 +98,16 @@ func main() {
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 
 	for _, section := range sections {
-		for _, path := range section.ImagesPaths() {
-			_, err = copyImage(regionID, path)
-			if err != nil {
-				log.Fatalf("generate: %v\n", err)
+		for _, place := range section.Places {
+			for _, imagePath := range place.ImagesPaths() {
+				_, err = copyImage(regionID, imagePath)
+				if err != nil {
+					log.Fatalf("generate: %v\n", err)
+				}
+
+				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
+					makeMiniIcon(imagePath)
+				}
 			}
 		}
 	}
@@ -117,6 +125,23 @@ func main() {
 			}
 		}
 	}
+}
+
+func makeMiniIcon(srcPath string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return errors.Wrap(err, "failed to get working dir")
+	}
+
+	miniIconFilename := "mini_" + filepath.Base(srcPath)
+	dstPath := filepath.Join(wd, "generated", regionID, "images", miniIconFilename)
+	// fmt.Printf("srcPath: %s, dstPath: %s\n", srcPath, dstPath)
+	err = exec.Command("magick", srcPath, "-quality", "60%", "-resize", "128x128", dstPath).Run()
+	if err != nil {
+		return errors.Wrapf(err, "failed to make a mini icon of image at %s", srcPath)
+	}
+
+	return nil
 }
 
 func copyImage(regionID string, srcPath string) (int, error) {

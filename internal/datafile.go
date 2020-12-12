@@ -64,27 +64,12 @@ type Parseable interface {
 
 // Section represents places of similiar type and associated metadata.
 type Section struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	Icon        string  `json:"icon"`
-	BgImage     string  `json:"background_image"`
-	QuickInfo   string  `json:"quick_info"`
-	Places      []Place `json:"places"`
-	imagesPaths []string
-}
-
-func (section *Section) makeImagePaths() {
-	for _, place := range section.Places {
-		for _, imagePath := range place.imagesPaths {
-			section.imagesPaths = append(section.imagesPaths, imagePath)
-		}
-	}
-}
-
-// ImagesPaths returns paths of all images of place p. They are
-// specific to your machine!
-func (section *Section) ImagesPaths() []string {
-	return section.imagesPaths
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Icon      string  `json:"icon"`
+	BgImage   string  `json:"background_image"`
+	QuickInfo string  `json:"quick_info"`
+	Places    []Place `json:"places"`
 }
 
 // Parse parses section data from its directory and assigns
@@ -139,8 +124,6 @@ func (section *Section) Parse(lang string) error {
 	}
 
 	section.Places = places
-
-	section.makeImagePaths()
 
 	return nil
 }
