@@ -1,29 +1,31 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"golang.org/x/image/webp"
 
+	"github.com/bartekpacia/database-tools/internal"
 	"github.com/bbrks/go-blurhash"
+	"github.com/pkg/errors"
 )
 
-func parseName(regionID string, lang string) (name string, err error) {
-	file, err := os.Open("database/" + regionID + "/meta/" + lang + "/name.txt")
-	if err != nil {
-		return "", err
+func parseMeta(regionID string, lang string) (*internal.Meta, error) {
+	metaPath := filepath.Join("database", regionID, "meta")
+
+	if err := os.Chdir(metaPath); err != nil {
+		return nil, errors.Wrapf(err, "failed to chdir into metaPath at %s", metaPath)
 	}
 
-	contents, err := ioutil.ReadAll(file)
-	if err != nil {
-		return "", err
+	var meta internal.Meta
+	meta.Parse(lang)
+
+	if err := os.Chdir("../../../"); err != nil {
+		return nil, errors.Wrapf(err, "failed to exit (aka go 3 dirs up) metaPath at %s ", metaPath)
 	}
 
-	name = string(contents)
-
-	return
+	return &meta, nil
 }
 
 func makeThumbBlurhash(regionID string) (blur string, err error) {
@@ -40,30 +42,6 @@ func makeThumbBlurhash(regionID string) (blur string, err error) {
 	blur, err = blurhash.Encode(4, 3, thumbImage)
 	if err != nil {
 		return "", nil
-	}
-
-	return
-}
-
-// parseFeatured parses an array of featured for the datafile regionID from the database.
-func parseFeatured(regionID string) (featured []string, err error) {
-	contribsFile, err := os.Open("database/" + regionID + "/meta/featured.json")
-	if err != nil {
-		// log.Fatalln("upload: error opening featured file:", err)
-		return nil, err
-	}
-	defer contribsFile.Close()
-
-	b, err := ioutil.ReadAll(contribsFile)
-	if err != nil {
-		// log.Fatalln("upload: error reading from featured file:", err)
-		return nil, err
-	}
-
-	err = json.Unmarshal(b, &featured)
-	if err != nil {
-		// log.Fatalln("upload: error unmarshalling featured file:", err)
-		return nil, err
 	}
 
 	return

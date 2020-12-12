@@ -427,10 +427,3 @@ const (
 	// Original quality represents full, uncompressed image.
 	Original
 )
-
-// // Image represents a single image with some metadata *in the datafile*.
-// type Image struct {
-// 	Name    string
-// 	Ext     string
-// 	quality ImageQuality
-// }

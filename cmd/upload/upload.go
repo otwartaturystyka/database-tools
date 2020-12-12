@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -24,6 +25,7 @@ const (
 
 var (
 	regionID string
+	lang     string
 	position int
 	verbose  bool
 	test     bool
@@ -37,8 +39,9 @@ var (
 func init() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
+	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")
-	flag.BoolVar(&test, "test", true, "whether to upload to test collections in Firestore")
+	flag.BoolVar(&test, "test", true, "whether to upload to the test collection in Firestore")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
 
 	opt := option.WithCredentialsFile("./key.json")
@@ -70,9 +73,9 @@ func main() {
 
 	regionName := "TODO"
 
-	featured, err := parseFeatured(regionID)
+	meta, err := parseMeta(regionID, lang)
 	if err != nil {
-		log.Fatalln("upload: error parsing featured:", err)
+		log.Fatalln("upload: error parsing meta:", err)
 	}
 
 	storagePrefix := regionID
@@ -92,6 +95,34 @@ func main() {
 		log.Fatalln("upload: error making a blurhash:", err)
 	}
 	fmt.Println("ok")
+
+	fmt.Println("upload: you are going to upload a data pack with the following metadata")
+
+	datafileData := internal.FirestoreDatafile{
+		Available:        true,
+		Featured:         meta.Featured,
+		FileSize:         fileInfo.Size(),
+		FileURL:          url.QueryEscape(fileURL),
+		LastUploadedTime: time.Time{},
+		Position:         1, // TODO: Handle position
+		RegionID:         regionID,
+		RegionName:       regionName,
+		IsTestVersion:    test,
+		ThumbBlurhash:    thumbBlurhash,
+		ThumbMiniURL:     url.QueryEscape(thumbMiniURL),
+		ThumbURL:         url.QueryEscape(thumbURL),
+	}
+
+	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
+	if err != nil {
+		log.Fatalln("upload: failed to marshal datafileData to JSON:", err)
+	}
+	fmt.Println(string(datafileDataJSON))
+
+	fmt.Println("upload: continue? (Y/n)")
+	if !askForConfirmation() {
+		log.Fatalln("upload: operation canceled")
+	}
 
 	// Upload compressed datafile
 	func() {
@@ -114,30 +145,29 @@ func main() {
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
-	// Upload minifed thumb
-
-	meta := internal.FirestoreDatafile{
-		Available:        true,
-		Featured:         featured,
-		FileSize:         fileInfo.Size(),
-		FileURL:          url.QueryEscape(fileURL),
-		LastUploadedTime: time.Time{},
-		Position:         1, // TODO: Handle position
-		RegionID:         regionID,
-		RegionName:       regionName,
-		IsTestVersion:    test,
-		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     url.QueryEscape(thumbMiniURL),
-		ThumbURL:         url.QueryEscape(thumbURL),
-	}
-
-	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(context.Background(), meta)
+	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(context.Background(), datafileData)
 	if err != nil {
 		log.Fatalf("error updating document %#v in /datafiles: %v\n", regionID, err)
 	}
 }
 
-// upload uploads a file under path to Cloud Storage path
+func askForConfirmation() bool {
+	var response string
+	_, err := fmt.Scanln(&response)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if response == "y" || response == "Y" || response == "\n" {
+		return true
+	} else if response == "N" || response == "n" {
+		return false
+	}
+
+	fmt.Println("upload: unknown option selected. abort")
+	return false
+}
+
+// Upload uploads file at localPath to Cloud Storage at cloudPath.
 func upload(localPath string, cloudPath string, contentType string) {
 	ctx := context.TODO()
 
