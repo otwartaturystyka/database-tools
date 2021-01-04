@@ -184,12 +184,16 @@ func createOutputDir(regionID string) (*os.File, error) {
 	generatedPath := "generated"
 	outputDirPath := generatedPath + "/" + regionID
 
+	// Check if the generated dir exists...
 	if _, err := os.Stat(generatedPath); err != nil {
 		if os.IsNotExist(err) {
-			return nil, errors.Errorf("dir %#v does not exist", generatedPath)
+			err = os.Mkdir(generatedPath, 0755)
+			if err != nil {
+				return nil, errors.Errorf("dir %#v does not exist and cannot be created", generatedPath)
+			}
+		} else {
+			return nil, errors.Errorf("failed to stat %#v dir", generatedPath)
 		}
-
-		return nil, errors.Errorf("failed to stat %#v dir", generatedPath)
 	}
 
 	err := os.RemoveAll(outputDirPath)
