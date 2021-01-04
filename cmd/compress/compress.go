@@ -35,7 +35,7 @@ func main() {
 		}
 	}
 
-	zipFile, err := os.Create("generated/" + regionID + ".zip")
+	zipFile, err := os.Create("compressed/" + regionID + ".zip")
 	defer zipFile.Close()
 
 	os.Chdir("database/")
