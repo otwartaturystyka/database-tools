@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/bartekpacia/database-tools/internal"
@@ -95,10 +96,10 @@ func main() {
 	fmt.Println("thumbLocation:", thumbLocation)
 	fmt.Println("thumbMiniLocation:", thumbMiniLocation)
 
-	fmt.Printf("upload: begin making thumb blurhash...")
+	fmt.Printf("upload: making thumb blurhash...")
 	thumbBlurhash, err := makeThumbBlurhash(regionID)
 	if err != nil {
-		log.Fatalln("upload: error making a blurhash:", err)
+		log.Fatalf("\nupload: error making a blurhash: %v\n", err)
 	}
 	fmt.Println("ok")
 
@@ -139,7 +140,7 @@ func main() {
 	// Upload compressed datafile
 	if !onlyMeta {
 		func() {
-			localPath := "compressed/" + regionID + ".zip"
+			localPath := filepath.Join("compressed", regionID+".zip")
 			cloudPath := "static/" + regionPrefix + "/rudy.zip"
 			upload(localPath, cloudPath, "application/zip")
 		}()
@@ -147,14 +148,14 @@ func main() {
 
 	// Upload thumb
 	func() {
-		localPath := "database/" + regionID + "/meta/thumb.webp"
+		localPath := filepath.Join("database", regionID+"/meta/thumb.webp")
 		cloudPath := "static/" + regionPrefix + "/thumb.webp"
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
 	// Upload minified thumb
 	func() {
-		localPath := "database/" + regionID + "/meta/thumb_mini.webp"
+		localPath := filepath.Join("database", regionID+"/meta/thumb_mini.webp")
 		cloudPath := "static/" + regionPrefix + "/thumb_mini.webp"
 		upload(localPath, cloudPath, "image/webp")
 	}()
@@ -180,13 +181,13 @@ func askForConfirmation() (bool, error) {
 	return false, nil
 }
 
-// Upload uploads file at localPath to Cloud Storage at cloudPath.
+// Upload uploads file at localPath (relative) to Cloud Storage at cloudPath (absolute).
 func upload(localPath string, cloudPath string, contentType string) {
 	ctx := context.TODO()
 
 	compressedDatafile, err := os.Open(localPath)
 	if err != nil {
-		log.Fatalln("upload: error opening compressed datafile:", err)
+		log.Fatalf("\nupload: error opening compressed datafile: %v\n", err)
 	}
 	defer compressedDatafile.Close()
 
@@ -195,15 +196,15 @@ func upload(localPath string, cloudPath string, contentType string) {
 	w.ContentType = contentType
 	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 
-	fmt.Printf("upload: begin uploading to %s...", cloudPath)
+	fmt.Printf("upload: uploading to %s...", cloudPath)
 	_, err = io.Copy(w, compressedDatafile)
 	if err != nil {
-		log.Fatalln("upload: error copying compressedDatafile to writer:", err)
+		log.Fatalf("\nupload: error copying compressedDatafile to writer: %v\n", err)
 	}
 
 	err = w.Close()
 	if err != nil {
-		log.Fatalln("upload: error closing storage writer:", err)
+		log.Fatalf("\nupload: error closing storage writer: %v\n", err)
 	}
 
 	fmt.Println("ok")
