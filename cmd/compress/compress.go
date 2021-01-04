@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -27,39 +28,30 @@ func init() {
 }
 
 func main() {
-	_, err := os.Stat("generated/")
+	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {
-		err = os.Mkdir("generated", 0755)
+		err = os.Mkdir("compressed", 0755)
 		if err != nil {
-			log.Fatalf("compress: error creating generated directory: %v\n", err)
+			log.Fatalf("compress: error creating compressed directory: %v\n", err)
 		}
 	}
 
-	zipFile, err := os.Create("compressed/" + regionID + ".zip")
+	zipFile, err := os.Create(filepath.Join("compressed", regionID+".zip"))
 	defer zipFile.Close()
 
-	os.Chdir("database/")
-	wd, _ := os.Getwd()
-	if verbose {
-		fmt.Println("compress: changed working directory to", wd)
-	}
+	sourceDatafilePath := filepath.Join("generated", regionID)
 
-	_, err = os.Stat(regionID)
+	info, err := os.Stat(sourceDatafilePath)
 	if os.IsNotExist(err) {
-		log.Fatalf("compress: datafile directory for %s doesn't exist", regionID)
-	}
-
-	info, err := os.Stat(regionID)
-	if os.IsNotExist(err) {
-		log.Fatalf("compress: error: directory for region %s doesn't exist\n", regionID)
+		log.Fatalf("compress: datafile in \"generated\" directory for %s doesn't exist", regionID)
 	}
 
 	if !info.IsDir() {
 		log.Fatalf("compress: error: datafile %s is not a directory\n", regionID)
 	}
 
-	w := zip.NewWriter(zipFile)
-	defer w.Close()
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
 
 	i := 0
 	walker := func(path string, fileInfo os.FileInfo, err error) error {
@@ -77,7 +69,9 @@ func main() {
 		}
 		defer file.Close()
 
-		writer, err := w.Create(path)
+		// Crop the "generated/" part to remove it from the result .zip.
+		components := strings.SplitAfterN(path, "/", 2)
+		writer, err := zipWriter.Create(components[1])
 		if err != nil {
 			log.Fatalf("compress: error creating a file in zip archive: %v\n", err)
 		}
@@ -95,14 +89,9 @@ func main() {
 		return nil
 	}
 
-	err = filepath.Walk(regionID, walker)
+	err = filepath.Walk(sourceDatafilePath, walker)
 	if err != nil {
 		log.Fatalf("compress: error while walking %s: %v\n", regionID, err)
-	}
-
-	os.Chdir("..")
-	if verbose {
-		fmt.Println("compress: changed working directory back")
 	}
 
 	fmt.Println("compress: successfully compressed datafile", regionID)
