@@ -39,7 +39,7 @@ var (
 )
 
 func init() {
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")

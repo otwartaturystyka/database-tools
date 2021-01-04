@@ -1,13 +1,20 @@
-generate:
-	go build ./cmd/generate/generate.go ./cmd/generate/parsers.go
+all: generate compress upload walk
 
-compress:
-	go build ./cmd/compress/compress.go
+GENERATE := ./cmd/generate
+COMPRESS := ./cmd/compress
+UPLOAD := ./cmd/upload
 
-upload:
-	go build ./cmd/upload/upload.go ./cmd/upload/parsers.go
+generate: $(GENERATE)/generate.go $(GENERATE)/parsers.go
+	go build $(GENERATE)/generate.go $(GENERATE)/parsers.go
 
-walk:
+compress: $(COMPRESS)/compress.go
+	go build $(COMPRESS)/compress.go
+
+upload: $(UPLOAD)/upload.go $(UPLOAD)/parsers.go
+	go build $(UPLOAD)/upload.go $(UPLOAD)/parsers.go
+
+walk: ./cmd/walk/walk.go
 	go build ./cmd/walk/walk.go
 
-all: generate compress upload
+clean:
+	rm -f ./compress ./generate ./upload ./walk

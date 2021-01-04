@@ -29,7 +29,7 @@ func check(err error) {
 }
 
 func init() {
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
 	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile")

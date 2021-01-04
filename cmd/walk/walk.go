@@ -39,7 +39,7 @@ func (e *entry) dimens() string {
 }
 
 func init() {
-	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region id")
 	flag.Float64Var(&minSize, "min-size", 2, "min size of images to list")
 	flag.StringVar(&sortBy, "sort-by", "count", "sort by \"count\" or \"ratio\"")
