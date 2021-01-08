@@ -19,9 +19,9 @@ type FirestoreDatafile struct {
 	ThumbURL      string    `json:"thumbURL" firestore:"thumbURL"`
 }
 
-// CurrentTime returns current UTC time rounded to second.
+// CurrentTime returns current UTC time rounded to seconds.
 // This method's purpose is to standarize time formats in this project.
 // Use it.
-func CurrentTime() MyTime {
-	return MyTime{time.Now().Round(time.Second).UTC()}
+func CurrentTime() time.Time {
+	return time.Now().Round(time.Second).UTC()
 }

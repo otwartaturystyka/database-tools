@@ -109,9 +109,9 @@ func main() {
 		Featured:      meta.Featured,
 		FileSize:      zipFileInfo.Size(),
 		FileURL:       fileLocation,
-		GeneratedAt:   meta.GeneratedAt.Time,
+		GeneratedAt:   meta.GeneratedAt,
 		IsTestVersion: !noTest,
-		UploadedAt:    internal.CurrentTime().Time,
+		UploadedAt:    internal.CurrentTime(),
 		Position:      1, // TODO: Handle position
 		RegionID:      regionID,
 		RegionName:    meta.RegionName,

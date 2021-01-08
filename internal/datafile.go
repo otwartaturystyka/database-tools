@@ -20,33 +20,13 @@ type Datafile struct {
 	Dayrooms []Dayroom `json:"dayrooms"`
 }
 
-// MyTime is standard time format used in this project.
-type MyTime struct {
-	time.Time
-}
-
-// MarshalJSON implements json.Marshaller interface.
-func (myTime MyTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(myTime.Time)
-}
-
-// UnmarshalJSON implements json.Unmarshaller interface.
-func (myTime *MyTime) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &myTime.Time)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Meta represents the JSON object in the beginning of data.json file.
 type Meta struct {
-	RegionID     string   `json:"region_id"`
-	RegionName   string   `json:"region_name"`
-	GeneratedAt  MyTime   `json:"generated_at"`
-	Contributors []string `json:"contributors"`
-	Featured     []string `json:"featured"`
+	RegionID     string    `json:"region_id"`
+	RegionName   string    `json:"region_name"`
+	GeneratedAt  time.Time `json:"generated_at"`
+	Contributors []string  `json:"contributors"`
+	Featured     []string  `json:"featured"`
 	Sources      []struct {
 		Name       string `json:"name"`
 		WebsiteURL string `json:"website_url"`
