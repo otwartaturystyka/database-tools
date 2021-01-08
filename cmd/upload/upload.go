@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"flag"
@@ -105,19 +106,20 @@ func main() {
 	}
 
 	datafileData := internal.FirestoreDatafile{
-		Available:     true,
-		Featured:      meta.Featured,
-		FileSize:      zipFileInfo.Size(),
-		FileURL:       fileLocation,
-		GeneratedAt:   meta.GeneratedAt,
-		IsTestVersion: !noTest,
-		UploadedAt:    internal.CurrentTime(),
-		Position:      displayPosition,
-		RegionID:      regionID,
-		RegionName:    meta.RegionName,
-		ThumbBlurhash: thumbBlurhash,
-		ThumbMiniURL:  thumbMiniLocation,
-		ThumbURL:      thumbLocation,
+		Available:        true,
+		Featured:         meta.Featured,
+		FileSize:         zipFileInfo.Size(),
+		FileURL:          fileLocation,
+		LastUploadedTime: internal.CurrentTime(),
+		GeneratedAt:      meta.GeneratedAt,
+		UploadedAt:       internal.CurrentTime(),
+		IsTestVersion:    !noTest,
+		Position:         displayPosition,
+		RegionID:         regionID,
+		RegionName:       meta.RegionName,
+		ThumbBlurhash:    thumbBlurhash,
+		ThumbMiniURL:     thumbMiniLocation,
+		ThumbURL:         thumbLocation,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
@@ -126,10 +128,10 @@ func main() {
 	}
 	fmt.Println(string(datafileDataJSON))
 
-	fmt.Println("upload: continue? (Y/n)")
+	fmt.Printf("upload: continue? (Y/n)")
 	accepted, err := askForConfirmation()
 	if err != nil {
-		log.Fatalf("upload: failed to get response: %v\n", err)
+		log.Fatalf("\nupload: failed to get response: %v\n", err)
 	}
 
 	if !accepted {
@@ -160,15 +162,19 @@ func main() {
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
-	_, err = firestoreClient.Collection(datafilesCollection).Doc(regionID).Set(context.Background(), datafileData)
+	docRef := firestoreClient.Collection(datafilesCollection).Doc(regionID)
+	fmt.Printf("upload: updating document at %s...", docRef.Path)
+	_, err = docRef.Set(context.Background(), datafileData)
 	if err != nil {
-		log.Fatalf("error updating document %#v in /datafiles: %v\n", regionID, err)
+		log.Fatalf("\nerror updating document %#v in /datafiles: %v\n", regionID, err)
 	}
+	fmt.Println("ok")
 }
 
 func askForConfirmation() (bool, error) {
-	var response string
-	_, err := fmt.Scan(&response)
+	reader := bufio.NewReader(os.Stdin)
+
+	response, err := reader.ReadString('\n')
 	if err != nil {
 		return false, errors.WithStack(err)
 	}
