@@ -43,9 +43,9 @@ func init() {
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&displayPosition, "position", 1, "position at which the datafile will show in the app")
-	flag.BoolVar(&onlyMeta, "only-meta", false, "true to upload only metadata (not the .zip file)")
-	flag.BoolVar(&noTest, "no-test", false, "true to upload to *production* collection in Firestore")
-	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
+	flag.BoolVar(&onlyMeta, "only-meta", false, "upload only metadata (not the .zip file)")
+	flag.BoolVar(&noTest, "no-test", false, "upload to **production** collection in Firestore")
+	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
 	opt := option.WithCredentialsFile("./key.json")
 

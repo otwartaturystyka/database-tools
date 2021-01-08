@@ -19,7 +19,7 @@ var (
 func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be compressed")
-	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
+	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 	flag.Parse()
 
 	if regionID == "" {

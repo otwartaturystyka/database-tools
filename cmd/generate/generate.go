@@ -33,7 +33,7 @@ func init() {
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
 	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile")
-	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
+	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 }
 
 func main() {
