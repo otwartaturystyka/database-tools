@@ -8,6 +8,7 @@ type FirestoreDatafile struct {
 	Featured         []string  `json:"featured" firestore:"featured"`
 	FileSize         int64     `json:"fileSize" firestore:"fileSize"`
 	FileURL          string    `json:"fileURL" firestore:"fileURL"`
+	GeneratedAt      string    `json:"generatedAt" firestore:"generatedAt"`
 	LastUploadedTime time.Time `json:"lastUploadedTime" firestore:"lastUploadedTime,serverTimestamp"`
 	Position         int       `json:"position" firestore:"position"`
 	RegionID         string    `json:"regionID" firestore:"regionID"`

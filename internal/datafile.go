@@ -22,11 +22,11 @@ type Datafile struct {
 
 // Meta represents JSON object in the beginning of data.json file.
 type Meta struct {
-	RegionID     string    `json:"region_id"`
-	RegionName   string    `json:"region_name"`
-	GeneratedAt  time.Time `json:"generated_at"`
-	Contributors []string  `json:"contributors"`
-	Featured     []string  `json:"featured"`
+	RegionID     string   `json:"region_id"`
+	RegionName   string   `json:"region_name"`
+	GeneratedAt  string   `json:"generated_at"`
+	Contributors []string `json:"contributors"`
+	Featured     []string `json:"featured"`
 	Sources      []struct {
 		Name       string `json:"name"`
 		WebsiteURL string `json:"website_url"`
@@ -36,7 +36,7 @@ type Meta struct {
 // Parse parses datafile's metadata and assigns it to meta
 // struct pointed to by m.
 func (m *Meta) Parse(lang string) error {
-	m.GeneratedAt = time.Now().Round(time.Minute).UTC()
+	m.GeneratedAt = time.Now().Round(time.Minute).UTC().String()
 
 	name, err := readFromFile(lang + "/name.txt")
 	if err != nil {

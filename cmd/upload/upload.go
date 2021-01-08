@@ -110,11 +110,12 @@ func main() {
 		Featured:         meta.Featured,
 		FileSize:         zipFileInfo.Size(),
 		FileURL:          fileLocation,
+		GeneratedAt:      meta.GeneratedAt,
+		IsTestVersion:    !noTest,
 		LastUploadedTime: time.Time{},
 		Position:         1, // TODO: Handle position
 		RegionID:         regionID,
 		RegionName:       meta.RegionName,
-		IsTestVersion:    !noTest,
 		ThumbBlurhash:    thumbBlurhash,
 		ThumbMiniURL:     thumbMiniLocation,
 		ThumbURL:         thumbLocation,
