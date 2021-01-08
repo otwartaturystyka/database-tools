@@ -60,7 +60,6 @@ func main() {
 	}
 	datafile.Meta = meta
 	datafile.Meta.GeneratedAt = internal.CurrentTime() // Important!
-	fmt.Println("generate: meta after getting current time:", datafile.Meta)
 
 	sections, err := parseSections(lang)
 	if err != nil {

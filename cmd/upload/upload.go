@@ -25,12 +25,12 @@ const (
 )
 
 var (
-	regionID string
-	lang     string
-	position int
-	onlyMeta bool
-	verbose  bool
-	noTest   bool
+	regionID        string
+	lang            string
+	displayPosition int
+	onlyMeta        bool
+	verbose         bool
+	noTest          bool
 )
 
 var (
@@ -42,7 +42,7 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
-	flag.IntVar(&position, "position", 1, "position at which the datafile should show in the app")
+	flag.IntVar(&displayPosition, "position", 1, "position at which the datafile will show in the app")
 	flag.BoolVar(&onlyMeta, "only-meta", false, "true to upload only metadata (not the .zip file)")
 	flag.BoolVar(&noTest, "no-test", false, "true to upload to *production* collection in Firestore")
 	flag.BoolVar(&verbose, "verbose", false, "true for extensive logging")
@@ -112,7 +112,7 @@ func main() {
 		GeneratedAt:   meta.GeneratedAt,
 		IsTestVersion: !noTest,
 		UploadedAt:    internal.CurrentTime(),
-		Position:      1, // TODO: Handle position
+		Position:      displayPosition,
 		RegionID:      regionID,
 		RegionName:    meta.RegionName,
 		ThumbBlurhash: thumbBlurhash,
