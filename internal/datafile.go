@@ -22,12 +22,24 @@ type Datafile struct {
 
 // Meta represents the JSON object in the beginning of data.json file.
 type Meta struct {
-	RegionID     string    `json:"region_id"`
-	RegionName   string    `json:"region_name"`
-	GeneratedAt  time.Time `json:"generated_at"`
-	Contributors []string  `json:"contributors"`
-	Featured     []string  `json:"featured"`
-	Sources      []struct {
+	// Short, lowercase ID of the datafile's region.
+	RegionID string `json:"region_id"`
+
+	// Full localized name of the datafile's region.
+	RegionName string `json:"region_name"`
+
+	// Time of datafile generation. It is present only in generated datafile
+	// i.e after the "generate" program has been run.
+	GeneratedAt time.Time `json:"generated_at"`
+
+	// People who somehow helped with creating the datafile.
+	Contributors []string `json:"contributors"`
+
+	// Some featured places present in the datafile.
+	Featured []string `json:"featured"`
+
+	// Resources (websites, books) which provided data in the datafile.
+	Sources []struct {
 		Name       string `json:"name"`
 		WebsiteURL string `json:"website_url"`
 	} `json:"sources"`
