@@ -11,18 +11,23 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ParseMeta parses metadata for the generated datafile of ID regionID.
 func parseMeta(regionID string, lang string) (*internal.Meta, error) {
-	metaPath := filepath.Join("database", regionID, "meta")
+	datafilePath := filepath.Join("generated", regionID)
 
-	if err := os.Chdir(metaPath); err != nil {
-		return nil, errors.Wrapf(err, "failed to chdir into metaPath at %s", metaPath)
+	if err := os.Chdir(datafilePath); err != nil {
+		return nil, errors.Wrapf(err, "failed to chdir into generated datafile's at %s", datafilePath)
 	}
 
 	var meta internal.Meta
-	meta.Parse(lang)
+	err := meta.ParseFromGenerated()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to parse meta from a generated datafile's data.json at %s", datafilePath)
+	}
 
-	if err := os.Chdir("../../../"); err != nil {
-		return nil, errors.Wrapf(err, "failed to exit (aka go 3 dirs up) metaPath at %s ", metaPath)
+	err = os.Chdir("../../")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to exit (aka go 2 dirs up) generated datafile's path at %s ", datafilePath)
 	}
 
 	return &meta, nil

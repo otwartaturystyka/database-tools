@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"
@@ -75,11 +74,6 @@ func main() {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
 
-	meta, err := parseMeta(regionID, lang)
-	if err != nil {
-		log.Fatalln("upload: error parsing meta:", err)
-	}
-
 	regionPrefix := regionID
 	datafilesCollection := "datafiles"
 	if !noTest {
@@ -92,9 +86,9 @@ func main() {
 	thumbLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb.webp") + "?alt=media"
 	thumbMiniLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb_mini.webp") + "?alt=media"
 
-	fmt.Println("fileLocation:", fileLocation)
-	fmt.Println("thumbLocation:", thumbLocation)
-	fmt.Println("thumbMiniLocation:", thumbMiniLocation)
+	fmt.Println("upload: fileLocation:", fileLocation)
+	fmt.Println("upload: thumbLocation:", thumbLocation)
+	fmt.Println("upload: thumbMiniLocation:", thumbMiniLocation)
 
 	fmt.Printf("upload: making thumb blurhash...")
 	thumbBlurhash, err := makeThumbBlurhash(regionID)
@@ -105,20 +99,25 @@ func main() {
 
 	fmt.Println("upload: you are going to upload a data pack with the following metadata")
 
+	meta, err := parseMeta(regionID, lang)
+	if err != nil {
+		log.Fatalln("upload: error parsing meta:", err)
+	}
+
 	datafileData := internal.FirestoreDatafile{
-		Available:        true,
-		Featured:         meta.Featured,
-		FileSize:         zipFileInfo.Size(),
-		FileURL:          fileLocation,
-		GeneratedAt:      meta.GeneratedAt,
-		IsTestVersion:    !noTest,
-		LastUploadedTime: time.Time{},
-		Position:         1, // TODO: Handle position
-		RegionID:         regionID,
-		RegionName:       meta.RegionName,
-		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     thumbMiniLocation,
-		ThumbURL:         thumbLocation,
+		Available:     true,
+		Featured:      meta.Featured,
+		FileSize:      zipFileInfo.Size(),
+		FileURL:       fileLocation,
+		GeneratedAt:   meta.GeneratedAt.Time,
+		IsTestVersion: !noTest,
+		UploadedAt:    internal.CurrentTime().Time,
+		Position:      1, // TODO: Handle position
+		RegionID:      regionID,
+		RegionName:    meta.RegionName,
+		ThumbBlurhash: thumbBlurhash,
+		ThumbMiniURL:  thumbMiniLocation,
+		ThumbURL:      thumbLocation,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")

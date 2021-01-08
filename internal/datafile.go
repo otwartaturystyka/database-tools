@@ -20,11 +20,31 @@ type Datafile struct {
 	Dayrooms []Dayroom `json:"dayrooms"`
 }
 
-// Meta represents JSON object in the beginning of data.json file.
+// MyTime is standard time format used in this project.
+type MyTime struct {
+	time.Time
+}
+
+// MarshalJSON implements json.Marshaller interface.
+func (myTime MyTime) MarshalJSON() ([]byte, error) {
+	return json.Marshal(myTime.Time)
+}
+
+// UnmarshalJSON implements json.Unmarshaller interface.
+func (myTime *MyTime) UnmarshalJSON(b []byte) error {
+	err := json.Unmarshal(b, &myTime.Time)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Meta represents the JSON object in the beginning of data.json file.
 type Meta struct {
 	RegionID     string   `json:"region_id"`
 	RegionName   string   `json:"region_name"`
-	GeneratedAt  string   `json:"generated_at"`
+	GeneratedAt  MyTime   `json:"generated_at"`
 	Contributors []string `json:"contributors"`
 	Featured     []string `json:"featured"`
 	Sources      []struct {
@@ -36,8 +56,6 @@ type Meta struct {
 // Parse parses datafile's metadata and assigns it to meta
 // struct pointed to by m.
 func (m *Meta) Parse(lang string) error {
-	m.GeneratedAt = time.Now().Round(time.Minute).UTC().String()
-
 	name, err := readFromFile(lang + "/name.txt")
 	if err != nil {
 		return err
@@ -53,6 +71,25 @@ func (m *Meta) Parse(lang string) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+// ParseFromGenerated parses datafile's metadata.
+// It looks for data.json in the current dir, parses it
+// and and assigns it to meta  struct pointed to by m.
+func (m *Meta) ParseFromGenerated() error {
+	datafileData, err := readFromFile("data.json")
+	if err != nil {
+		return err
+	}
+
+	var datafile Datafile
+	err = json.Unmarshal(datafileData, &datafile)
+	if err != nil {
+		return err
+	}
+	*m = datafile.Meta
 
 	return nil
 }

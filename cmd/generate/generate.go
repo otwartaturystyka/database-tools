@@ -59,6 +59,8 @@ func main() {
 		log.Fatalln(errors.Unwrap(err))
 	}
 	datafile.Meta = meta
+	datafile.Meta.GeneratedAt = internal.CurrentTime() // Important!
+	fmt.Println("generate: meta after getting current time:", datafile.Meta)
 
 	sections, err := parseSections(lang)
 	if err != nil {
@@ -82,20 +84,26 @@ func main() {
 
 	os.Chdir("../..")
 
+	fmt.Printf("generate: creating output dir...")
 	dataJSONFile, err := createOutputDir(regionID)
 	if err != nil {
-		log.Fatalf("generate: createOutputDir(): %v\n", err)
+		log.Fatalf("\ngenerate: createOutputDir(): %v\n", err)
 	}
+	fmt.Println("ok")
 
+	fmt.Printf("generate: marshalling datafile into json...")
 	data, err := json.MarshalIndent(datafile, "", "	")
 	if err != nil {
-		log.Fatalf("generate: failed to marshal datafile to JSON: %v\n", err)
+		log.Fatalf("\ngenerate: failed to marshal datafile to JSON: %v\n", err)
 	}
+	fmt.Println("ok")
 
+	fmt.Printf("generate: writing datafile json to a file...")
 	n, err := dataJSONFile.Write(data)
 	if err != nil {
-		log.Fatalf("generate: failed to write data to the JSON file: %v\n", err)
+		log.Fatalf("\ngenerate: failed to write data to the JSON file: %v\n", err)
 	}
+	fmt.Println("ok")
 	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
 
 	for _, section := range sections {
