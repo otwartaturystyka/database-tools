@@ -48,11 +48,11 @@ type Meta struct {
 // Parse parses datafile's metadata and assigns it to meta
 // struct pointed to by m.
 func (m *Meta) Parse(lang string) error {
-	name, err := readFromFile(lang + "/name.txt")
+	name, err := readFromFile(filepath.Join(lang, "name.txt"))
 	if err != nil {
 		return err
 	}
-	m.RegionName = string(name)
+	m.RegionName = strings.TrimSuffix(string(name), "\n")
 
 	data, err := readFromFile("data.json")
 	if err != nil {
@@ -198,21 +198,23 @@ func (p *Place) Parse(lang string) error {
 	if err != nil {
 		return err
 	}
-	p.Name = string(name)
+	p.Name = strings.TrimSuffix(string(name), "\n")
 
 	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
-	p.QuickInfo = string(quickInfo)
+	p.QuickInfo = strings.TrimSuffix(string(quickInfo), "\n")
 
 	overview, err := readFromFile("content/" + lang + "/overview.txt")
 	if err != nil {
 		return err
 	}
-	p.Overview = string(overview)
+	p.Overview = strings.TrimSuffix(string(overview), "\n")
 
 	i := 0
+	p.Headers = make([]string, 0)
+	p.Content = make([]string, 0)
 	for {
 		textFileName := "text_" + fmt.Sprint(i) + ".txt"
 		textFile, err := os.Open(filepath.Join("content", lang, textFileName))

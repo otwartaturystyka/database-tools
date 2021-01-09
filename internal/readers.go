@@ -13,18 +13,18 @@ import (
 // ReadFromFile opens and reads from file at filepath. It gracefully
 // handles errors.
 func readFromFile(filepath string) ([]byte, error) {
-	nameFile, err := os.Open(filepath)
+	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, errors.Errorf("failed to open file %s", filepath)
 	}
-	defer nameFile.Close()
+	defer file.Close()
 
-	name, err := ioutil.ReadAll(nameFile)
+	fileContent, err := ioutil.ReadAll(file)
 	if err != nil {
 		return nil, errors.Errorf("failed to read contents from file %s", filepath)
 	}
 
-	return name, nil
+	return fileContent, nil
 }
 
 // ReadTextualData reads header and content from file.
