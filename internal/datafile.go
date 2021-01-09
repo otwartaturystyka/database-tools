@@ -216,16 +216,15 @@ func (p *Place) Parse(lang string) error {
 	p.Headers = make([]string, 0)
 	p.Content = make([]string, 0)
 	for {
-		textFileName := "text_" + fmt.Sprint(i) + ".txt"
-		textFile, err := os.Open(filepath.Join("content", lang, textFileName))
+		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
+		textFile, err := os.Open(textFilePath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				wd, _ := os.Getwd()
-				fmt.Printf("file %s does not exist, wd: %s\n", textFileName, wd)
+				// fmt.Printf("file %s of place %s does not exist (this is probably perfectly normal)\n", textFilePath, p.ID)
 				break
 			}
 
-			fmt.Printf("error opening file at %s: %v\n", textFileName, err)
+			fmt.Printf("error opening file %s: %v\n", textFilePath, err)
 		}
 
 		header, content, err := readTextualData(textFile)
@@ -234,11 +233,8 @@ func (p *Place) Parse(lang string) error {
 			return err
 		}
 
-		fmt.Printf("i: %d, header for %s: %s\n", i, p.ID, header)
-		fmt.Printf("i: %d, content for %s: %s\n", i, p.ID, content)
-
-		p.Headers = append(p.Headers, header)
-		p.Content = append(p.Content, content)
+		p.Headers = append(p.Headers, strings.TrimSuffix(header, "\n"))
+		p.Content = append(p.Content, strings.TrimSuffix(content, "\n"))
 
 		i++
 	}
