@@ -2,8 +2,10 @@ package internal
 
 import (
 	"bufio"
+	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -30,20 +32,33 @@ func readTextualData(file *os.File) (header string, content string, err error) {
 	reader := bufio.NewReader(file)
 	header, err = reader.ReadString('\n')
 	if err != nil {
-		err = errors.Errorf("failed to read header (line 1)")
-		return
+		if errors.Is(err, io.EOF) {
+			err = nil
+		} else {
+			err = errors.Errorf("failed to read header (line 1) from file %s: %v", file.Name(), err)
+			return
+		}
 	}
+	header = strings.TrimSuffix(header, "\n")
 
 	reader.ReadString('\n')
 	if err != nil {
-		err = errors.Errorf("failed to read 3-slash divider (line 2)")
-		return
+		if errors.Is(err, io.EOF) {
+			err = nil
+		} else {
+			err = errors.Errorf("failed to read 3-slash divider (line 2) from file %s: %v", file.Name(), err)
+			return
+		}
 	}
 
 	content, err = reader.ReadString('\n')
 	if err != nil {
-		err = errors.Errorf("failed to read content (line 3)")
-		return
+		if errors.Is(err, io.EOF) {
+			err = nil
+		} else {
+			err = errors.Errorf("failed to read content (line 3) from file %s: %v", file.Name(), err)
+			return
+		}
 	}
 
 	return

@@ -179,6 +179,21 @@ type Place struct {
 // it to track pointed to by p. It must be used directly
 // in the place's directory.
 func (p *Place) Parse(lang string) error {
+	// Technicla metadata
+	data, err := readFromFile("data.json")
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, p)
+	if err != nil {
+		return err
+	}
+
+	err = p.makeImagesPaths(Compressed)
+
+	// Content
+
 	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
@@ -199,32 +214,32 @@ func (p *Place) Parse(lang string) error {
 
 	i := 0
 	for {
-		textFileName := "text_" + fmt.Sprint(i)
-		textFile, err := os.Open("content/" + lang + "/" + textFileName)
-		if os.IsNotExist(err) {
-			break
+		textFileName := "text_" + fmt.Sprint(i) + ".txt"
+		textFile, err := os.Open(filepath.Join("content", lang, textFileName))
+		if err != nil {
+			if os.IsNotExist(err) {
+				wd, _ := os.Getwd()
+				fmt.Printf("file %s does not exist, wd: %s\n", textFileName, wd)
+				break
+			}
+
+			fmt.Printf("error opening file at %s: %v\n", textFileName, err)
 		}
 
 		header, content, err := readTextualData(textFile)
+		textFile.Close()
 		if err != nil {
 			return err
 		}
 
+		fmt.Printf("i: %d, header for %s: %s\n", i, p.ID, header)
+		fmt.Printf("i: %d, content for %s: %s\n", i, p.ID, content)
+
 		p.Headers = append(p.Headers, header)
 		p.Content = append(p.Content, content)
-	}
 
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
+		i++
 	}
-
-	err = json.Unmarshal(data, p)
-	if err != nil {
-		return err
-	}
-
-	err = p.makeImagesPaths(Compressed)
 
 	return err
 }
