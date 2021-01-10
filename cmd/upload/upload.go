@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/bartekpacia/database-tools/readers"
 	"io"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"
 
 	"cloud.google.com/go/firestore"
@@ -105,14 +105,14 @@ func main() {
 		log.Fatalln("upload: error parsing meta:", err)
 	}
 
-	datafileData := internal.FirestoreDatafile{
+	datafileData := FirestoreDatafile{
 		Available:        true,
 		Featured:         meta.Featured,
 		FileSize:         zipFileInfo.Size(),
 		FileURL:          fileLocation,
-		LastUploadedTime: internal.CurrentTime(),
+		LastUploadedTime: readers.CurrentTime(),
 		GeneratedAt:      meta.GeneratedAt,
-		UploadedAt:       internal.CurrentTime(),
+		UploadedAt:       readers.CurrentTime(),
 		IsTestVersion:    !noTest,
 		Position:         displayPosition,
 		RegionID:         regionID,

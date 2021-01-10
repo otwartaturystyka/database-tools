@@ -10,8 +10,8 @@ generate: $(GENERATE)/generate.go $(GENERATE)/parsers.go
 compress: $(COMPRESS)/compress.go
 	go build $(COMPRESS)/compress.go
 
-upload: $(UPLOAD)/upload.go $(UPLOAD)/parsers.go
-	go build $(UPLOAD)/upload.go $(UPLOAD)/parsers.go
+upload: $(UPLOAD)/upload.go $(UPLOAD)/parsers.go $(UPLOAD)/types.go
+	go build $(UPLOAD)/upload.go $(UPLOAD)/parsers.go $(UPLOAD)/types.go
 
 walk: ./cmd/walk/walk.go
 	go build ./cmd/walk/walk.go

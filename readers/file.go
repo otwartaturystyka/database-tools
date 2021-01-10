@@ -1,18 +1,17 @@
-package internal
+package readers
 
 import (
 	"bufio"
+	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // ReadFromFile opens and reads from file at filepath. It gracefully
 // handles errors.
-func readFromFile(filepath string) ([]byte, error) {
+func ReadFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to open file %s", filepath)
@@ -28,7 +27,7 @@ func readFromFile(filepath string) ([]byte, error) {
 }
 
 // ReadTextualData reads header and content from file.
-func readTextualData(file *os.File) (header string, content string, err error) {
+func ReadTextualData(file *os.File) (header string, content string, err error) {
 	reader := bufio.NewReader(file)
 	header, err = reader.ReadString('\n')
 	if err != nil {
@@ -41,7 +40,7 @@ func readTextualData(file *os.File) (header string, content string, err error) {
 	}
 	header = strings.TrimSuffix(header, "\n")
 
-	reader.ReadString('\n')
+	_, err = reader.ReadString('\n')
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			err = nil

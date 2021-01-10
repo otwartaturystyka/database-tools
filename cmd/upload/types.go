@@ -1,4 +1,4 @@
-package internal
+package main
 
 import "time"
 
@@ -18,11 +18,4 @@ type FirestoreDatafile struct {
 	ThumbBlurhash    string    `json:"thumbBlurhash" firestore:"thumbBlurhash"`
 	ThumbMiniURL     string    `json:"thumbMiniURL" firestore:"thumbMiniURL"`
 	ThumbURL         string    `json:"thumbURL" firestore:"thumbURL"`
-}
-
-// CurrentTime returns current UTC time rounded to seconds.
-// This method's purpose is to standarize time formats in this project.
-// Use it.
-func CurrentTime() time.Time {
-	return time.Now().Round(time.Second).UTC()
 }

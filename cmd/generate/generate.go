@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/bartekpacia/database-tools/readers"
 	"io"
 	"log"
 	"os"
@@ -53,7 +54,7 @@ func main() {
 		log.Fatalln(errors.Unwrap(err))
 	}
 	datafile.Meta = meta
-	datafile.Meta.GeneratedAt = internal.CurrentTime() // Important!
+	datafile.Meta.GeneratedAt = readers.CurrentTime() // Important!
 
 	sections, err := parseSections(lang)
 	if err != nil {
@@ -105,7 +106,7 @@ func main() {
 
 	for _, section := range sections {
 		for _, place := range section.Places {
-			for _, imagePath := range place.ImagesPaths() {
+			for _, imagePath := range place.ImagePaths() {
 				_, err = copyImage(regionID, imagePath)
 				if err != nil {
 					log.Fatalf("generate: %v\n", err)
@@ -124,7 +125,7 @@ func main() {
 			log.Fatalf("generate: failed to copy markdown file for story %s: %v\n", story.ID, err)
 		}
 
-		for _, path := range story.ImagesPaths() {
+		for _, path := range story.ImagePaths() {
 			_, err := copyImage(regionID, path)
 			if err != nil {
 				log.Fatalf("generate: failed to copy image for story %s: %v\n", story.ID, err)

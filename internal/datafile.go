@@ -2,7 +2,7 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/bartekpacia/database-tools/readers"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,13 +48,13 @@ type Meta struct {
 // Parse parses datafile's metadata and assigns it to meta
 // struct pointed to by m.
 func (m *Meta) Parse(lang string) error {
-	name, err := readFromFile(filepath.Join(lang, "name.txt"))
+	name, err := readers.ReadFromFile(filepath.Join(lang, "name.txt"))
 	if err != nil {
 		return err
 	}
 	m.RegionName = strings.TrimSuffix(string(name), "\n")
 
-	data, err := readFromFile("data.json")
+	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
 	}
@@ -67,11 +67,11 @@ func (m *Meta) Parse(lang string) error {
 	return nil
 }
 
-// ParseFromGenerated parses datafile's metadata.
-// It looks for data.json in the current dir, parses it
-// and and assigns it to meta  struct pointed to by m.
+// ParseFromGenerated parses metadata of the datafile in the
+// generated directory. It looks for data.json in the current
+// dir, parses it and and assigns it to meta struct pointed to by m.
 func (m *Meta) ParseFromGenerated() error {
-	datafileData, err := readFromFile("data.json")
+	datafileData, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
 	}
@@ -84,11 +84,6 @@ func (m *Meta) ParseFromGenerated() error {
 	*m = datafile.Meta
 
 	return nil
-}
-
-// Parseable is everything that can be parsed from the database filesystem.
-type Parseable interface {
-	Parse(lang string) error
 }
 
 // Section represents places of similiar type and associated metadata.
@@ -105,7 +100,7 @@ type Section struct {
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
 func (section *Section) Parse(lang string) error {
-	data, err := readFromFile("data.json")
+	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
 	}
@@ -114,13 +109,13 @@ func (section *Section) Parse(lang string) error {
 		return err
 	}
 
-	name, err := readFromFile("content/" + lang + "/name.txt")
+	name, err := readers.ReadFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
 	}
 	section.Name = string(name)
 
-	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
+	quickInfo, err := readers.ReadFromFile("content/" + lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
@@ -153,370 +148,6 @@ func (section *Section) Parse(lang string) error {
 	}
 
 	section.Places = places
-
-	return nil
-}
-
-type Action struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// Place represents single place in real world.
-type Place struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Section     string   `json:"section"`
-	Icon        string   `json:"icon"`
-	QuickInfo   string   `json:"quick_info"`
-	Overview    string   `json:"overview"`
-	Lat         float32  `json:"lat"`
-	Lng         float32  `json:"lng"`
-	WebsiteURL  string   `json:"website_url"`
-	FacebookURL string   `json:"facebook_url"`
-	Headers     []string `json:"headers"`
-	Content     []string `json:"content"`
-	Actions     []Action `json:"actions"`
-	Images      []string `json:"images"`
-	imagesPaths []string
-}
-
-// Parse parses place data from its directory and assigns
-// it to track pointed to by p. It must be used directly
-// in the place's directory.
-func (p *Place) Parse(lang string) error {
-	// Technicla metadata
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, p)
-	if err != nil {
-		return err
-	}
-
-	err = p.makeImagePaths(Compressed)
-	if err != nil {
-		return err
-	}
-
-	// Content
-	name, err := readFromFile("content/" + lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	p.Name = strings.TrimSuffix(string(name), "\n")
-
-	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
-	if err != nil {
-		return err
-	}
-	p.QuickInfo = strings.TrimSuffix(string(quickInfo), "\n")
-
-	overview, err := readFromFile("content/" + lang + "/overview.txt")
-	if err != nil {
-		return err
-	}
-	p.Overview = strings.TrimSuffix(string(overview), "\n")
-
-	// Headers and content
-	p.Headers = make([]string, 0)
-	p.Content = make([]string, 0)
-	for i := 0; true; i++ {
-		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
-		textFile, err := os.Open(textFilePath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				fmt.Printf("file %s of place %s does not exist (most probably, this place does not have additional content)\n", textFilePath, p.ID)
-				break
-			}
-
-			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
-		}
-
-		header, content, err := readTextualData(textFile)
-		if err != nil {
-			return err
-		}
-		err = textFile.Close()
-		if err != nil {
-			return err
-		}
-
-		p.Headers = append(p.Headers, strings.TrimSuffix(header, "\n"))
-		p.Content = append(p.Content, strings.TrimSuffix(content, "\n"))
-
-		err = p.makeActions(lang)
-		if err != nil {
-			return errors.Wrapf(err, "makeActions for place %s", p.ID)
-		}
-	}
-
-	return nil
-}
-
-func (p *Place) makeActions(lang string) error {
-	p.Actions = make([]Action, 0)
-
-	// Actions
-	actionValuesFile, err := readFromFile("actions.json")
-	if err != nil {
-		fmt.Printf("file %s of place %s does not exist (most probably, this place does not have any actions)\n", "actions.json", p.ID)
-		return nil // Actions are the last thing to parse, so if there are none, we're good to return
-	}
-
-	// Read action values from JSON
-	actionValues := make([]string, 0)
-	err = json.Unmarshal(actionValuesFile, &actionValues)
-	if err != nil {
-		return err
-	}
-
-	// Read action names from a valid language file
-	actionNames := make([]string, 0)
-	for i := 0; i < len(actionValues); i++ {
-		actionFilePath := filepath.Join("content", lang, fmt.Sprintf("action_%d.txt", i))
-		b, err := readFromFile(actionFilePath)
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("file %s of place %s does not exist (most probably, this means the translation is missing)\n", actionFilePath, p.ID)
-				break
-			}
-
-			return errors.WithStack(err)
-		}
-
-		actionName := strings.TrimSuffix(string(b), "\n")
-		actionNames = append(actionNames, actionName)
-	}
-
-	if len(actionValues) != len(actionNames) {
-		return errors.New("actionValues and actionNames are not of the same length – this is probably an error in the database")
-	}
-
-	for i := 0; i < len(actionValues); i++ {
-		action := Action{Name: actionNames[i], Value: actionValues[i]}
-		p.Actions = append(p.Actions, action)
-	}
-
-	return nil
-}
-
-func (p *Place) makeImagePaths(quality Quality) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "failed to get working dir")
-	}
-
-	var qualityDir string
-	if quality == Compressed {
-		qualityDir = "compressed"
-	} else if quality == Original {
-		qualityDir = "original"
-	}
-
-	// s.Images were set when the story was parsed from its JSON.
-	for _, image := range p.Images {
-		absPath := filepath.Join(wd, "images", qualityDir, image+".webp")
-
-		if _, err := os.Stat(absPath); err != nil {
-			return errors.Errorf("image at %s does not exist!\n", absPath)
-		}
-
-		p.imagesPaths = append(p.imagesPaths, absPath)
-	}
-
-	// Add icon.
-	iconPath := filepath.Join(wd, "images", qualityDir, p.Icon+".webp")
-	p.imagesPaths = append(p.imagesPaths, iconPath)
-
-	return nil
-}
-
-// ImagesPaths returns paths of all images of place p. They are
-// specific to your machine!
-func (p *Place) ImagesPaths() []string {
-	return p.imagesPaths
-}
-
-// Track represents a bike trail or some other "long" geographical object.
-type Track struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	QuickInfo string   `json:"quick_info"`
-	Overview  string   `json:"overview"`
-	Images    []string `json:"images"`
-	Coords    []struct {
-		Lat float32 `json:"lat"`
-		Lng float32 `json:"lng"`
-	} `json:"coords"`
-}
-
-// Parse parses track data from its directory and assigns
-// it to track pointed to by t. It must be used directly
-// in the track's directory, usually by using os.Chdir().
-func (t *Track) Parse(lang string) error {
-	name, err := readFromFile(lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	t.Name = string(name)
-
-	overview, err := readFromFile(lang + "/overview.txt")
-	if err != nil {
-		return err
-	}
-	t.Overview = string(overview)
-
-	quickInfo, err := readFromFile(lang + "/quick_info.txt")
-	if err != nil {
-		return err
-	}
-	t.QuickInfo = string(quickInfo)
-
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, t)
-
-	return err
-}
-
-// Story represents a longer piece of text about a particular topic.
-type Story struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	MarkdownFile string `json:"markdown_filename"`
-	markdownPath string
-	Images       []string `json:"images"`
-	imagesPaths  []string
-}
-
-// Parse parses story data from its directory and assigns
-// it to story pointed to by s. It must be used directly
-// in the tracks's directory.
-func (s *Story) Parse(lang string) error {
-	name, err := readFromFile(lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	s.Name = string(name)
-
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, s)
-	if err != nil {
-		return err
-	}
-
-	err = s.makeMarkdownPath(lang)
-	if err != nil {
-		return errors.Wrap(err, "makeMarkdownPath")
-	}
-
-	err = s.makeImagesPaths(Compressed)
-	if err != nil {
-		return errors.Wrap(err, "makeImagesPath")
-	}
-
-	return nil
-}
-
-func (s *Story) makeMarkdownPath(lang string) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return errors.Wrap(err, "failed to get working dir")
-	}
-
-	s.markdownPath = wd + "/" + lang + "/" + s.MarkdownFile + ".md"
-	return nil
-}
-
-func (s *Story) makeImagesPaths(quality Quality) error {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	var qualityDir string
-	if quality == Compressed {
-		qualityDir = "compressed"
-	} else if quality == Original {
-		qualityDir = "original"
-	}
-
-	// s.Images were set when the story was parsed from its JSON.
-	for _, image := range s.Images {
-		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
-		s.imagesPaths = append(s.imagesPaths, absPath)
-	}
-
-	return nil
-}
-
-// ImagesPaths returns paths of all images of story s. They are
-// specific to your machine!
-func (s *Story) ImagesPaths() []string {
-	return s.imagesPaths
-}
-
-// MarkdownPath returns path to the story's markdown file.
-// It is specific to your machine.
-func (s *Story) MarkdownPath() string {
-	return s.markdownPath
-}
-
-// Dayroom represents a place run by local community.
-type Dayroom struct {
-	ID        string   `json:"id"`
-	Type      string   `json:"type"`
-	Section   string   `json:"section"`
-	Name      string   `json:"name"`
-	QuickInfo string   `json:"quick_info"`
-	Overview  string   `json:"overview"`
-	Images    []string `json:"images"`
-	Lat       float32  `json:"lat"`
-	Lng       float32  `json:"lng"`
-	Leader    string   `json:"leader"`
-}
-
-// Parse parses dayroom data from its directory and assigns
-// it to dayroom pointer to by d. It must be used directly
-// in the dayroom's directory, usually by using os.Chdir().
-func (dayroom *Dayroom) Parse(lang string) error {
-	name, err := readFromFile("content/" + lang + "/name.txt")
-	if err != nil {
-		return err
-	}
-	dayroom.Name = string(name)
-
-	overview, err := readFromFile("content/" + lang + "/overview.txt")
-	if err != nil {
-		return err
-	}
-	dayroom.Overview = string(overview)
-
-	quickInfo, err := readFromFile("content/" + lang + "/quick_info.txt")
-	if err != nil {
-		return err
-	}
-	dayroom.QuickInfo = string(quickInfo)
-
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, &dayroom)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
