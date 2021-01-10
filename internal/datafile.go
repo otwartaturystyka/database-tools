@@ -105,6 +105,15 @@ type Section struct {
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
 func (section *Section) Parse(lang string) error {
+	data, err := readFromFile("data.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(data, section)
+	if err != nil {
+		return err
+	}
+
 	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
@@ -116,15 +125,6 @@ func (section *Section) Parse(lang string) error {
 		return err
 	}
 	section.QuickInfo = string(quickInfo)
-
-	data, err := readFromFile("data.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(data, section)
-	if err != nil {
-		return err
-	}
 
 	// Parse places.
 	places := make([]Place, 0, 50)
@@ -139,7 +139,7 @@ func (section *Section) Parse(lang string) error {
 		var place Place
 		err = place.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse place at %s", path)
+			return errors.Wrapf(err, "parse place \"%s\"", path)
 		}
 		os.Chdir("../..")
 
@@ -157,6 +157,11 @@ func (section *Section) Parse(lang string) error {
 	return nil
 }
 
+type Action struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // Place represents single place in real world.
 type Place struct {
 	ID          string   `json:"id"`
@@ -171,6 +176,7 @@ type Place struct {
 	FacebookURL string   `json:"facebook_url"`
 	Headers     []string `json:"headers"`
 	Content     []string `json:"content"`
+	Actions     []Action `json:"actions"`
 	Images      []string `json:"images"`
 	imagesPaths []string
 }
@@ -190,10 +196,12 @@ func (p *Place) Parse(lang string) error {
 		return err
 	}
 
-	err = p.makeImagesPaths(Compressed)
+	err = p.makeImagePaths(Compressed)
+	if err != nil {
+		return err
+	}
 
 	// Content
-
 	name, err := readFromFile("content/" + lang + "/name.txt")
 	if err != nil {
 		return err
@@ -212,23 +220,26 @@ func (p *Place) Parse(lang string) error {
 	}
 	p.Overview = strings.TrimSuffix(string(overview), "\n")
 
-	i := 0
+	// Headers and content
 	p.Headers = make([]string, 0)
 	p.Content = make([]string, 0)
-	for {
+	for i := 0; true; i++ {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
 		textFile, err := os.Open(textFilePath)
 		if err != nil {
 			if os.IsNotExist(err) {
-				// fmt.Printf("file %s of place %s does not exist (this is probably perfectly normal)\n", textFilePath, p.ID)
+				fmt.Printf("file %s of place %s does not exist (most probably, this place does not have additional content)\n", textFilePath, p.ID)
 				break
 			}
 
-			fmt.Printf("error opening file %s: %v\n", textFilePath, err)
+			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
 		}
 
 		header, content, err := readTextualData(textFile)
-		textFile.Close()
+		if err != nil {
+			return err
+		}
+		err = textFile.Close()
 		if err != nil {
 			return err
 		}
@@ -236,13 +247,63 @@ func (p *Place) Parse(lang string) error {
 		p.Headers = append(p.Headers, strings.TrimSuffix(header, "\n"))
 		p.Content = append(p.Content, strings.TrimSuffix(content, "\n"))
 
-		i++
+		err = p.makeActions(lang)
+		if err != nil {
+			return errors.Wrapf(err, "makeActions for place %s", p.ID)
+		}
 	}
 
-	return err
+	return nil
 }
 
-func (p *Place) makeImagesPaths(quality Quality) error {
+func (p *Place) makeActions(lang string) error {
+	p.Actions = make([]Action, 0)
+
+	// Actions
+	actionValuesFile, err := readFromFile("actions.json")
+	if err != nil {
+		fmt.Printf("file %s of place %s does not exist (most probably, this place does not have any actions)\n", "actions.json", p.ID)
+		return nil // Actions are the last thing to parse, so if there are none, we're good to return
+	}
+
+	// Read action values from JSON
+	actionValues := make([]string, 0)
+	err = json.Unmarshal(actionValuesFile, &actionValues)
+	if err != nil {
+		return err
+	}
+
+	// Read action names from a valid language file
+	actionNames := make([]string, 0)
+	for i := 0; i < len(actionValues); i++ {
+		actionFilePath := filepath.Join("content", lang, fmt.Sprintf("action_%d.txt", i))
+		b, err := readFromFile(actionFilePath)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				fmt.Printf("file %s of place %s does not exist (most probably, this means the translation is missing)\n", actionFilePath, p.ID)
+				break
+			}
+
+			return errors.WithStack(err)
+		}
+
+		actionName := strings.TrimSuffix(string(b), "\n")
+		actionNames = append(actionNames, actionName)
+	}
+
+	if len(actionValues) != len(actionNames) {
+		return errors.New("actionValues and actionNames are not of the same length – this is probably an error in the database")
+	}
+
+	for i := 0; i < len(actionValues); i++ {
+		action := Action{Name: actionNames[i], Value: actionValues[i]}
+		p.Actions = append(p.Actions, action)
+	}
+
+	return nil
+}
+
+func (p *Place) makeImagePaths(quality Quality) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return errors.Wrap(err, "failed to get working dir")

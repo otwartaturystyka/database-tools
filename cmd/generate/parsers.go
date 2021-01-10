@@ -28,13 +28,13 @@ func parseSections(lang string) ([]internal.Section, error) {
 		if level != 1 {
 			return nil
 		}
-		// Jump 2 levels down, to the track's directory.
+		// Jump 2 levels down, to the sections's directory.
 		os.Chdir(path)
 
 		var section internal.Section
 		err = section.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "path: %s", path)
+			return errors.Wrapf(err, "parse section \"%s\"", path)
 		}
 		os.Chdir("../..")
 
@@ -42,6 +42,9 @@ func parseSections(lang string) ([]internal.Section, error) {
 		return nil
 	}
 	err := filepath.Walk("sections", walker)
+	if err != nil {
+		return sections, errors.Wrapf(err, "walk sections")
+	}
 
 	return sections, err
 }

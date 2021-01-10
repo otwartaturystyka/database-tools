@@ -15,7 +15,7 @@ import (
 func readFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, errors.Errorf("failed to open file %s", filepath)
+		return nil, errors.Wrapf(err, "failed to open file %s", filepath)
 	}
 	defer file.Close()
 

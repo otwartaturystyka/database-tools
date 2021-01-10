@@ -22,12 +22,6 @@ var (
 	verbose  bool
 )
 
-func check(err error) {
-	if err != nil {
-		log.Fatalln("generate:", err)
-	}
-}
-
 func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
@@ -63,12 +57,14 @@ func main() {
 
 	sections, err := parseSections(lang)
 	if err != nil {
-		log.Fatalf("generate: parseSections: %v\n", err)
+		log.Fatalf("generate: failed to parse sections: %v\n", err)
 	}
 	datafile.Sections = sections
 
 	tracks, err := parseTracks(lang)
-	check(err)
+	if err != nil {
+		log.Fatalf("generate: failed to parse tracks: %v\n", err)
+	}
 	datafile.Tracks = tracks
 
 	stories, err := parseStories(lang)
@@ -78,7 +74,9 @@ func main() {
 	datafile.Stories = stories
 
 	dayrooms, err := parseDayrooms(lang)
-	check(err)
+	if err != nil {
+		log.Fatalf("generate: failed to parse dayrooms: %v\n", err)
+	}
 	datafile.Dayrooms = dayrooms
 
 	os.Chdir("../..")
@@ -86,11 +84,11 @@ func main() {
 	fmt.Printf("generate: creating output dir...")
 	dataJSONFile, err := createOutputDir(regionID)
 	if err != nil {
-		log.Fatalf("\ngenerate: createOutputDir(): %v\n", err)
+		log.Fatalf("\ngenerate: failed to create output dir: %v\n", err)
 	}
 	fmt.Println("ok")
 
-	fmt.Printf("generate: marshalling datafile into json...")
+	fmt.Printf("generate: marshalling datafile to JSON...")
 	data, err := json.MarshalIndent(datafile, "", "	")
 	if err != nil {
 		log.Fatalf("\ngenerate: failed to marshal datafile to JSON: %v\n", err)
