@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/bartekpacia/database-tools/readers"
 	"io"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/bartekpacia/database-tools/readers"
 
 	"github.com/pkg/errors"
 

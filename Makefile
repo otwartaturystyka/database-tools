@@ -21,4 +21,4 @@ walk: ./cmd/walk/walk.go
 	go build ./cmd/walk/walk.go
 
 clean:
-	rm -f ./compress ./generate ./upload ./walk
+	rm -f ./compress ./generate ./notify ./upload ./walk
