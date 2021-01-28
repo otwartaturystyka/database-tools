@@ -14,9 +14,13 @@ import (
 
 var (
 	regionID string
-	title    string
-	body     string
-	verbose  bool
+
+	title string
+	body  string
+	topic string
+	token string
+
+	verbose bool
 )
 
 var (
@@ -30,6 +34,8 @@ func init() {
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&title, "title", "", "message title")
 	flag.StringVar(&body, "body", "", "message body")
+	flag.StringVar(&topic, "topic", "", "topic to send message to")
+	flag.StringVar(&token, "token", "", "token of individual device to send message to")
 	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
 	opt := option.WithCredentialsFile("./key.json")
@@ -49,9 +55,29 @@ func init() {
 	if err != nil {
 		log.Fatalf("notify: failed to initialize messaging")
 	}
-
 }
 
 func main() {
-	fmt.Println("hello")
+	flag.Parse()
+
+	if regionID == "" {
+		log.Fatalln("notify: regionID is empty")
+	}
+
+	fmt.Println("topic:", topic)
+	msg := messaging.Message{
+		Notification: &messaging.Notification{
+			Title: title,
+			Body:  body,
+		},
+		Token: token,
+		Topic: topic,
+	}
+
+	response, err := messagingClient.Send(context.Background(), &msg)
+	if err != nil {
+		log.Fatalf("notify: failed to send message: %v\n", err)
+	}
+
+	fmt.Println("notify: message sent, response: ", response)
 }
