@@ -64,12 +64,15 @@ func main() {
 		log.Fatalln("notify: regionID is empty")
 	}
 
-	fmt.Println("topic:", topic)
+	data := make(map[string]string)
+	data["value"] = "dupa"
+
 	msg := messaging.Message{
 		Notification: &messaging.Notification{
 			Title: title,
 			Body:  body,
 		},
+		Data:  data,
 		Token: token,
 		Topic: topic,
 	}
