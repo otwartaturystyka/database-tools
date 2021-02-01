@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -76,6 +77,15 @@ func main() {
 		Token: token,
 		Topic: topic,
 	}
+
+	b, err := json.MarshalIndent(msg, "", "  ")
+	if err != nil {
+		log.Fatalln("notify: error marshalling message to json")
+	}
+	fmt.Println("notify: message to be sent:")
+	fmt.Println(string(b))
+
+	panic("lol")
 
 	response, err := messagingClient.Send(context.Background(), &msg)
 	if err != nil {
