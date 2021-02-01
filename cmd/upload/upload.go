@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"flag"
@@ -13,8 +12,6 @@ import (
 	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/readers"
-
-	"github.com/pkg/errors"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
@@ -129,7 +126,7 @@ func main() {
 	}
 	fmt.Println(string(datafileDataJSON))
 
-	accepted, err := askForConfirmation("upload: continue?", false)
+	accepted, err := readers.AskForConfirmation("upload: continue?", false)
 	if err != nil {
 		log.Fatalf("\nupload: failed to get response: %v\n", err)
 	}
@@ -169,39 +166,6 @@ func main() {
 		log.Fatalf("\nerror updating document %#v in /datafiles: %v\n", regionID, err)
 	}
 	fmt.Println("ok")
-}
-
-func askForConfirmation(message string, defaultYes bool) (bool, error) {
-	yesAnswers := make(map[string]bool)
-	yesAnswers["Y\n"] = true
-	yesAnswers["y\n"] = true
-
-	noAnswers := make(map[string]bool)
-	noAnswers["N\n"] = true
-	noAnswers["n\n"] = true
-
-	if defaultYes {
-		yesAnswers["\n"] = true
-		fmt.Printf(message + " [Y/n]: ")
-	} else {
-		noAnswers["\n"] = true
-		fmt.Printf(message + " [y/N]: ")
-	}
-
-	reader := bufio.NewReader(os.Stdin)
-
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		return false, errors.WithStack(err)
-	}
-
-	if yesAnswers[response] {
-		return true, nil
-	} else if noAnswers[response] {
-		return false, nil
-	}
-
-	return false, errors.New("unknown option passed")
 }
 
 // Upload uploads file at localPath (relative) to Cloud Storage at cloudPath (absolute).
