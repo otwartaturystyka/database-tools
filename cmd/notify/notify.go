@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
+	"github.com/bartekpacia/database-tools/readers"
 	"google.golang.org/api/option"
 )
 
@@ -80,17 +82,25 @@ func main() {
 
 	b, err := json.MarshalIndent(msg, "", "  ")
 	if err != nil {
-		log.Fatalln("notify: error marshalling message to json")
+		log.Fatalln("notify: failed to marshal message to JSON:", err)
 	}
 	fmt.Println("notify: message to be sent:")
 	fmt.Println(string(b))
 
-	panic("lol")
+	confirmed, err := readers.AskForConfirmation("notify: send the message?", false)
+	if err != nil {
+		log.Fatalf("\notify: failed to get response: %v\n", err)
+	}
 
-	response, err := messagingClient.Send(context.Background(), &msg)
+	if !confirmed {
+		fmt.Println("notify: sending message canceled by the user")
+		os.Exit(0)
+	}
+
+	messagingResponse, err := messagingClient.Send(context.Background(), &msg)
 	if err != nil {
 		log.Fatalf("notify: failed to send message: %v\n", err)
 	}
 
-	fmt.Println("notify: message sent, response: ", response)
+	fmt.Println("notify: message sent, messagingResponse: ", messagingResponse)
 }
