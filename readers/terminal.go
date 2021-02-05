@@ -22,10 +22,10 @@ func AskForConfirmation(message string, defaultYes bool) (bool, error) {
 
 	if defaultYes {
 		yesAnswers["\n"] = true
-		fmt.Printf(message + " [Y/n]: ")
+		fmt.Printf(message + " [Y/n] ")
 	} else {
 		noAnswers["\n"] = true
-		fmt.Printf(message + " [y/N]: ")
+		fmt.Printf(message + " [y/N] ")
 	}
 
 	reader := bufio.NewReader(os.Stdin)
