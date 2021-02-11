@@ -2,10 +2,11 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/bartekpacia/database-tools/readers"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
+
+	"github.com/bartekpacia/database-tools/readers"
+	"github.com/pkg/errors"
 )
 
 // Story represents a longer piece of text about a particular topic.

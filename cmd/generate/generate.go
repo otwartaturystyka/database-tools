@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/bartekpacia/database-tools/readers"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/bartekpacia/database-tools/readers"
 
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"

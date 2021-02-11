@@ -3,11 +3,12 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bartekpacia/database-tools/readers"
-	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/bartekpacia/database-tools/readers"
+	"github.com/pkg/errors"
 )
 
 type Action struct {

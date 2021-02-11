@@ -2,11 +2,12 @@ package readers
 
 import (
 	"bufio"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // ReadFromFile opens and reads from file at filepath. It gracefully

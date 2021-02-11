@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+
 	"github.com/bartekpacia/database-tools/readers"
 )
 

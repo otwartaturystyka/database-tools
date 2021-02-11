@@ -2,11 +2,12 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/bartekpacia/database-tools/readers"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/bartekpacia/database-tools/readers"
 
 	"github.com/pkg/errors"
 )
