@@ -44,6 +44,7 @@ func (s *Story) Parse(lang string) error {
 		return errors.Wrap(err, "makeMarkdownPath")
 	}
 
+	s.imagePaths = make([]string, 0)
 	err = s.makeImagePaths(Compressed)
 	if err != nil {
 		return errors.Wrap(err, "makeImagesPath")
@@ -76,6 +77,10 @@ func (s *Story) makeImagePaths(quality Quality) error {
 	}
 
 	// s.Images were set when the story was parsed from its JSON.
+	if s.Images == nil {
+		s.Images = make([]string, 0)
+	}
+
 	for _, image := range s.Images {
 		absPath := filepath.Join(cwd, "images/", qualityDir, "/"+image+".webp")
 		s.imagePaths = append(s.imagePaths, absPath)
