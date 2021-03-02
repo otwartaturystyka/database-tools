@@ -77,6 +77,7 @@ func (p *Place) Parse(lang string) error {
 	// Headers and content
 	p.Headers = make([]string, 0)
 	p.Content = make([]string, 0)
+	p.Actions = make([]Action, 0)
 	for i := 0; true; i++ {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
 		textFile, err := os.Open(textFilePath)
@@ -111,12 +112,10 @@ func (p *Place) Parse(lang string) error {
 }
 
 func (p *Place) makeActions(lang string) error {
-	p.Actions = make([]Action, 0)
-
 	actionValuesFile, err := readers.ReadFromFile("actions.json")
 	if err != nil {
 		fmt.Printf("file %s of place %s does not exist (most probably, this place does not have any actions)\n", "actions.json", p.ID)
-		return nil // Actions are the last thing to parse, so if there are none, we're good to return
+		return nil
 	}
 
 	// Read action values from JSON
