@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Action usually represents named URL.
 type Action struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
@@ -90,7 +91,7 @@ func (p *Place) Parse(lang string) error {
 			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
 		}
 
-		header, content, err := readers.ReadTextualData(textFile)
+		header, content, err := readers.ReadTextualData(textFile, textFile.Name())
 		if err != nil {
 			return err
 		}

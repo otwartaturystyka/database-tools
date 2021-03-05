@@ -28,14 +28,14 @@ func ReadFromFile(filepath string) ([]byte, error) {
 }
 
 // ReadTextualData reads header and content from file.
-func ReadTextualData(file *os.File) (header string, content string, err error) {
+func ReadTextualData(file io.Reader, filename string) (header string, content string, err error) {
 	reader := bufio.NewReader(file)
 	header, err = reader.ReadString('\n')
 	if err != nil {
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read header (line 1) from file %s: %v", file.Name(), err)
+			err = errors.Errorf("failed to read header (line 1) from file %s: %v", filename, err)
 			return
 		}
 	}
@@ -46,7 +46,7 @@ func ReadTextualData(file *os.File) (header string, content string, err error) {
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read 3-slash divider (line 2) from file %s: %v", file.Name(), err)
+			err = errors.Errorf("failed to read 3-slash divider (line 2) from file %s: %v", filename, err)
 			return
 		}
 	}
@@ -56,10 +56,11 @@ func ReadTextualData(file *os.File) (header string, content string, err error) {
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read content (line 3) from file %s: %v", file.Name(), err)
+			err = errors.Errorf("failed to read content (line 3) from file %s: %v", filename, err)
 			return
 		}
 	}
+	content = strings.TrimSuffix(content, "\n")
 
 	return
 }
