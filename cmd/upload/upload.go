@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/readers"
@@ -73,17 +74,17 @@ func main() {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
 
-	regionPrefix := regionID
+	prefixedRegionID := regionID
 	datafilesCollection := "datafiles"
 	if !noTest {
-		regionPrefix += "Test"
+		prefixedRegionID += "Test"
 		datafilesCollection += "Test"
 	}
 
 	// https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static %2Frudy%2Frudy.zip?alt=media
-	fileLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/"+zipFileInfo.Name()) + "?alt=media"
-	thumbLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb.webp") + "?alt=media"
-	thumbMiniLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb_mini.webp") + "?alt=media"
+	fileLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/"+zipFileInfo.Name()) + "?alt=media"
+	thumbLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb.webp") + "?alt=media"
+	thumbMiniLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb_mini.webp") + "?alt=media"
 
 	fmt.Println("upload: fileLocation:", fileLocation)
 	fmt.Println("upload: thumbLocation:", thumbLocation)
@@ -140,7 +141,7 @@ func main() {
 	if !onlyMeta {
 		func() {
 			localPath := filepath.Join("compressed", regionID+".zip")
-			cloudPath := "static/" + regionPrefix + "/rudy.zip"
+			cloudPath := path.Join("static", prefixedRegionID, regionID+".zip")
 			upload(localPath, cloudPath, "application/zip")
 		}()
 	}
@@ -148,14 +149,14 @@ func main() {
 	// Upload thumb
 	func() {
 		localPath := filepath.Join("database", regionID+"/meta/thumb.webp")
-		cloudPath := "static/" + regionPrefix + "/thumb.webp"
+		cloudPath := path.Join("static", prefixedRegionID, "thumb.webp")
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
 	// Upload minified thumb
 	func() {
 		localPath := filepath.Join("database", regionID+"/meta/thumb_mini.webp")
-		cloudPath := "static/" + regionPrefix + "/thumb_mini.webp"
+		cloudPath := path.Join("static", prefixedRegionID, "thumb_mini.webp")
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
