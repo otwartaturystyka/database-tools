@@ -21,7 +21,7 @@ func parseMeta(lang string) (internal.Meta, error) {
 }
 
 func parseSections(lang string) ([]internal.Section, error) {
-	var sections []internal.Section
+	sections := make([]internal.Section, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		level := strings.Count(path, "/")
@@ -50,7 +50,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 }
 
 func parseTracks(lang string) ([]internal.Track, error) {
-	var tracks []internal.Track
+	tracks := make([]internal.Track, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		level := strings.Count(path, "/")
@@ -74,7 +74,7 @@ func parseTracks(lang string) ([]internal.Track, error) {
 }
 
 func parseStories(lang string) ([]internal.Story, error) {
-	var stories []internal.Story
+	stories := make([]internal.Story, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		level := strings.Count(path, "/")
@@ -99,7 +99,7 @@ func parseStories(lang string) ([]internal.Story, error) {
 }
 
 func parseDayrooms(lang string) ([]internal.Dayroom, error) {
-	var dayrooms []internal.Dayroom
+	dayrooms := make([]internal.Dayroom, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		level := strings.Count(path, "/")
