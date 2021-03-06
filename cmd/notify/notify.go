@@ -87,9 +87,9 @@ func main() {
 	fmt.Println("notify: message to be sent:")
 	fmt.Println(string(b))
 
-	confirmed, err := readers.AskForConfirmation("notify: send the message?", false)
+	confirmed, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "notify: send the message?", false)
 	if err != nil {
-		log.Fatalf("\notify: failed to get response: %v\n", err)
+		log.Fatalf("\nnotify: failed to get response: %v\n", err)
 	}
 
 	if !confirmed {
