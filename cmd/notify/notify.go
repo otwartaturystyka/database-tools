@@ -68,7 +68,8 @@ func main() {
 	}
 
 	data := make(map[string]string)
-	data["value"] = "dupa"
+	data["title"] = title
+	data["body"] = body
 
 	msg := messaging.Message{
 		Notification: &messaging.Notification{
