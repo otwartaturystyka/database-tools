@@ -11,12 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Action usually represents named URL.
-type Action struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 // Place represents single place in real world.
 type Place struct {
 	ID          string   `json:"id"`

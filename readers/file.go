@@ -3,7 +3,6 @@ package readers
 import (
 	"bufio"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -19,7 +18,7 @@ func ReadFromFile(filepath string) ([]byte, error) {
 	}
 	defer file.Close()
 
-	fileContent, err := ioutil.ReadAll(file)
+	fileContent, err := io.ReadAll(file)
 	if err != nil {
 		return nil, errors.Errorf("failed to read contents from file %s", filepath)
 	}
