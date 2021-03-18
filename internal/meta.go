@@ -9,6 +9,11 @@ import (
 	"github.com/bartekpacia/database-tools/readers"
 )
 
+type Link struct {
+	Name       string `json:"name"`
+	WebsiteURL string `json:"website_url"`
+}
+
 // Meta represents the JSON object in the beginning of data.json file.
 type Meta struct {
 	// Short, lowercase ID of the datafile's region.
@@ -31,10 +36,10 @@ type Meta struct {
 	Featured []string `json:"featured"`
 
 	// Resources (websites, books) which provided data in the datafile.
-	Sources []struct {
-		Name       string `json:"name"`
-		WebsiteURL string `json:"website_url"`
-	} `json:"sources"`
+	Sources []Link `json:"sources"`
+
+	// Related resources which might interest people using this datafile.
+	Links []Link `json:"links"`
 }
 
 // Parse parses datafile's metadata and assigns it to meta

@@ -48,6 +48,10 @@ func (section *Section) Parse(lang string) error {
 	// Parse places.
 	places := make([]Place, 0, 50)
 	placesWalker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse place %#s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
@@ -58,7 +62,7 @@ func (section *Section) Parse(lang string) error {
 		var place Place
 		err = place.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse place \"%s\"", path)
+			return errors.Wrapf(err, "parse place %#s", path)
 		}
 		os.Chdir("../..")
 
