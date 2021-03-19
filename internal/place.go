@@ -21,8 +21,8 @@ type Place struct {
 	Overview    string   `json:"overview"`
 	Lat         float32  `json:"lat"`
 	Lng         float32  `json:"lng"`
-	WebsiteURL  string   `json:"website_url"`
-	FacebookURL string   `json:"facebook_url"`
+	WebsiteURL  *string  `json:"website_url"`
+	FacebookURL *string  `json:"facebook_url"`
 	Headers     []string `json:"headers"`
 	Content     []string `json:"content"`
 	Actions     []Action `json:"actions"`
