@@ -1,0 +1,40 @@
+{
+  "$id": "datafile",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Generated data",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata of the datafile.",
+      "properties": {
+        "region_id": {
+          "type": "string",
+          "description": "Unique ID of the region."
+        },
+        "region_name": {
+          "type": "string",
+          "description": "Localized name of the region."
+        },
+        "center": {
+          "type": "object",
+          "description": "Latitude and longitude of the coarse center of the region. Format: DDD.DDDDD° (Decimal Degrees)",
+          "properties": {
+            "lat": {
+              "type": "number",
+              "description": "Latitude."
+            },
+            "lng": {
+              "type": "number",
+              "description": "Longitude."
+            }
+          }
+        },
+        "generated_at": {
+          "type": "string",
+          "description:": "Timestamp when the datafile was generated. Format: ISO8601 (e.g 2021-04-06T22:57:38Z)"
+        }
+      }
+    }
+  }
+}
