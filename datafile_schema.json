@@ -233,16 +233,41 @@
           "quick_info": {
             "type": "string",
             "description": "Short and brief description on the section."
+          },
+          "coords": {
+            "type": "array",
+            "description": "Coordinates representing the trail on map.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                }
+              }
+            }
           }
         },
         "required": ["id", "name", "quick_info", "overview", "images", "coords"]
       }
     },
     "stories": {
-      "type": "string"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {}
+      }
     },
     "dayrooms": {
-      "type": "string"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {}
+      }
     }
   }
 }
