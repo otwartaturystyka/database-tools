@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/bartekpacia/database-tools/readers"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/bartekpacia/database-tools/readers"
 
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/pkg/errors"
@@ -27,7 +28,7 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
-	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile")
+	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile (1 - compressed, 2 - original")
 	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 }
 
