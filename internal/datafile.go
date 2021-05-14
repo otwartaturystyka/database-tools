@@ -2,11 +2,12 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/bartekpacia/database-tools/readers"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/bartekpacia/database-tools/readers"
 
 	"github.com/pkg/errors"
 )
@@ -124,6 +125,7 @@ func (section *Section) Parse(lang string) error {
 	// Parse places.
 	places := make([]Place, 0, 50)
 	placesWalker := func(path string, info os.FileInfo, err error) error {
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil

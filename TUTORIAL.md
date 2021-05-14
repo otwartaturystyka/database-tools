@@ -2,21 +2,32 @@
 
 ### Ikony
 
-- format: PNG (bo najpopularniejszy i najszerzej wspierany)
+Nowy format:
+
+- format: JPG (bo najpopularniejszy i najszerzej wspierany)
 - wymiary: 1024x1024 px
 - kwadratowe, nieprzycięte
 
+Stary format:
+
+- format: JPG (bo wspiera przezroczystość)
+- wymiary: jakiekolwiek kwadratowe
+
 ### Zdjęcia
 
-- format: JPG (bo najpopularniejszy i najszerzej wspierany)
+- muszą być poziome (szerkość > wysokość)
+- format: 16:9 albo 4:3
 - liczba zdjęć na miejsce: od 2 do 5
+
+**Oryginalne**
+
+- format: JPG (bo najpopularniejszy i najszerzej wspierany)
 - maksymalny rozmiar: 6MB
-- format 16:9 albo 4:3
 
-# Paczka zoptymalizowana
+**Skompresowany**
 
-- maksymalny rozmiar zdjęcia: 400KB
-- format: WEBP
+- format: WEBP (bo zajmuje najmniej miejsca)
+- maksymalny rozmiar: 400KB
 
 ### Ikony
 
