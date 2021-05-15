@@ -24,6 +24,10 @@ func parseSections(lang string) ([]internal.Section, error) {
 	var sections []internal.Section
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse section %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
@@ -34,7 +38,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 		var section internal.Section
 		err = section.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse section \"%s\"", path)
+			return errors.Wrapf(err, "parse section %s", path)
 		}
 		os.Chdir("../..")
 
@@ -53,6 +57,10 @@ func parseTracks(lang string) ([]internal.Track, error) {
 	var tracks []internal.Track
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse track %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
@@ -77,11 +85,15 @@ func parseStories(lang string) ([]internal.Story, error) {
 	var stories []internal.Story
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse story %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
 		}
-		// Jump 2 levels down, to dayrooms directory.
+		// Jump 2 levels down, to the story's directory.
 		os.Chdir(path)
 
 		var story internal.Story
@@ -96,29 +108,4 @@ func parseStories(lang string) ([]internal.Story, error) {
 	err := filepath.Walk("stories", walker)
 
 	return stories, err
-}
-
-func parseDayrooms(lang string) ([]internal.Dayroom, error) {
-	var dayrooms []internal.Dayroom
-
-	walker := func(path string, info os.FileInfo, err error) error {
-		level := strings.Count(path, "/")
-		if level != 1 {
-			return nil
-		}
-		// Jump 2 levels down, to dayrooms directory.
-		os.Chdir(path)
-
-		var dayroom internal.Dayroom
-		err = dayroom.Parse(lang)
-
-		dayrooms = append(dayrooms, dayroom)
-		os.Chdir("../..")
-
-		return err
-	}
-
-	err := filepath.Walk("dayrooms", walker)
-
-	return dayrooms, err
 }

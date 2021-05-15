@@ -75,12 +75,6 @@ func main() {
 	}
 	datafile.Stories = stories
 
-	dayrooms, err := parseDayrooms(lang)
-	if err != nil {
-		log.Fatalf("generate: failed to parse dayrooms: %v\n", err)
-	}
-	datafile.Dayrooms = dayrooms
-
 	os.Chdir("../..")
 
 	fmt.Printf("generate: creating output dir...")
