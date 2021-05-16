@@ -124,9 +124,17 @@ func (section *Section) Parse(lang string) error {
 	// Parse places.
 	places := make([]Place, 0, 50)
 	placesWalker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
 		level := strings.Count(path, "/")
 		if level != 1 {
+			return nil
+		}
+
+		// Ignore hidden files.
+		if strings.HasPrefix(filepath.Base(path), ".") {
 			return nil
 		}
 

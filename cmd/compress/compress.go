@@ -37,6 +37,9 @@ func main() {
 	}
 
 	zipFile, err := os.Create(filepath.Join("compressed", regionID+".zip"))
+	if err != nil {
+		log.Fatalln("compress: failed to create zip file")
+	}
 	defer zipFile.Close()
 
 	sourceDatafilePath := filepath.Join("generated", regionID)
@@ -55,7 +58,11 @@ func main() {
 
 	i := 0
 	walker := func(path string, fileInfo os.FileInfo, err error) error {
-		if fileInfo.Name() == ".DS_Store" {
+		if err != nil {
+			return err
+		}
+
+		if fileInfo.Name() == "." {
 			return nil
 		}
 
