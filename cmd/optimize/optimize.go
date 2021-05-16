@@ -32,19 +32,11 @@ func main() {
 		log.Fatalf("optimize %s: no valid directory structure: %v\n", placeID, err)
 	}
 
-	_, err = os.Stat(compressedIconPath)
+	err = makeIcon(originalIconPath, compressedIconPath)
 	if err != nil {
-		if os.IsNotExist(err) {
-			fmt.Printf("optimize %s: compressed icon does not exist. It will be created\n", placeID)
-			err = makeIcon(originalIconPath, compressedIconPath)
-			if err != nil {
-				log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
-			}
-			fmt.Printf("optimize %s: created optimized icon\n", placeID)
-		} else {
-			log.Fatalf("optimize %s: failed to stat images/ dir: %v\n", err, placeID)
-		}
+		log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
 	}
+	fmt.Printf("optimize %s: created optimized icon\n", placeID)
 
 	dirEntries, err := os.ReadDir("images/original")
 	if err != nil {
@@ -64,8 +56,6 @@ func main() {
 		name := strings.TrimSuffix(fullName, filepath.Ext(fullName))
 		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
 		dstPath := fmt.Sprintf("images/compressed/%s.webp", name)
-
-		fmt.Printf("optimize %s: will optimized original image %s\n", placeID, srcPath)
 
 		err := makeImage(srcPath, dstPath)
 		if err != nil {
@@ -90,7 +80,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 	_, err = os.Stat("images/original")
 	if err != nil {
 		if os.IsNotExist(err) {
-			return errors.New("images images/original/ dir does not exist")
+			return errors.New("images/original/ dir does not exist")
 		} else {
 			return errors.Wrap(err, "stat images/original/")
 		}
