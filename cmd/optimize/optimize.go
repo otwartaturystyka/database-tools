@@ -38,25 +38,34 @@ func main() {
 			fmt.Printf("optimize %s: compressed icon does not exist. It will be created\n", placeID)
 			err = makeIcon(originalIconPath, compressedIconPath)
 			if err != nil {
-				log.Fatalf("optimize %s: failed to create images/compressed/ dir\n", placeID)
+				log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
 			}
-			fmt.Printf("optimize %s: created compressed icon\n", placeID)
+			fmt.Printf("optimize %s: created optimized icon\n", placeID)
 		} else {
 			log.Fatalf("optimize %s: failed to stat images/ dir: %v\n", err, placeID)
 		}
 	}
 
-	fileNames, err := os.ReadDir("images/original")
+	dirEntries, err := os.ReadDir("images/original")
 	if err != nil {
 		log.Fatalf("optimize %s: failed to read images/original/ dir: %v\n", placeID, err)
 	}
 
-	for _, fileName := range fileNames {
-		if strings.HasPrefix(fileName.Name(), "ic_") {
+	for _, dirEntry := range dirEntries {
+		if strings.HasPrefix(dirEntry.Name(), "ic_") {
 			continue
 		}
 
-		fmt.Println(fileName.Name())
+		fullName := dirEntry.Name()
+		name := strings.TrimSuffix(fullName, filepath.Ext(fullName))
+		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
+		dstPath := fmt.Sprintf("images/compressed/%s.webp", name)
+
+		err := makeImage(srcPath, dstPath)
+		if err != nil {
+			log.Fatalf("optimize %s: failed to create optimized image %s: %v\n", placeID, name, err)
+		}
+		fmt.Printf("optimize %s: created optimized image %s\n", placeID, name)
 	}
 }
 
@@ -121,9 +130,10 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 
 /// MakeIcons creates a 512x512 WEBP version of a standard 1024x1024 JPG icon.
 func makeIcon(srcPath string, dstPath string) error {
-	err := exec.Command("magick", srcPath, "-resize", "512x512", dstPath).Run()
+	cmd := exec.Command("magick", srcPath, "-resize", "512x512", dstPath)
+	err := cmd.Run()
 	if err != nil {
-		return errors.Wrapf(err, "optimize icon %s", srcPath)
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -131,9 +141,10 @@ func makeIcon(srcPath string, dstPath string) error {
 
 // magick lesny_przystanek_1.heic -resize 50% -quality 75 lesny_przystanek_1.webp
 func makeImage(srcPath string, dstPath string) error {
-	err := exec.Command("magick", srcPath, "-resize 25%", "-quality 75", dstPath).Run()
+	cmd := exec.Command("magick", srcPath, "-resize", "25%", "-quality", "75", dstPath)
+	err := cmd.Run()
 	if err != nil {
-		return errors.Wrapf(err, "optimize icon %s", srcPath)
+		return errors.WithStack(err)
 	}
 
 	return nil
