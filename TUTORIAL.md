@@ -1,19 +1,29 @@
 # Paczka źródłowa
 
-### Ikony
-
-Nowy format:
+## Ikony - nowy format
 
 - format: JPG (bo najpopularniejszy i najszerzej wspierany)
-- wymiary: 1024x1024 px
 - kwadratowe, nieprzycięte
 
-Stary format:
+**Oryginalne**
 
-- format: JPG (bo wspiera przezroczystość)
+- wymiary: 1024x1024 px
+- format: JPG (bo najpopularniejszy i najszerzej wspierany)
+- maksymalny rozmiar: 2MB
+
+**Skompresowane**
+
+- wymiary: 512x512 px
+- format: WEBP (bo zajmuje najmniej miejsca i wspiera przezroczystość)
+- maksymalny rozmiar: 400KB
+
+## Ikony - stary format:
+
+- format: PNG/WEBP (bo wspiera przezroczystość)
 - wymiary: jakiekolwiek kwadratowe
+- SĄ PRZYCIĘTE DO KÓŁKA (niepotrzebnie, bo będzie to robić aplikacja)
 
-### Zdjęcia
+## Zdjęcia
 
 - muszą być poziome (szerkość > wysokość)
 - format: 16:9 albo 4:3
@@ -24,10 +34,12 @@ Stary format:
 - format: JPG (bo najpopularniejszy i najszerzej wspierany)
 - maksymalny rozmiar: 6MB
 
-**Skompresowany**
+**Skompresowane**
 
 - format: WEBP (bo zajmuje najmniej miejsca)
 - maksymalny rozmiar: 400KB
+
+# Paczka skompresowana
 
 ### Ikony
 
