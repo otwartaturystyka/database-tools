@@ -104,7 +104,7 @@ func main() {
 			for _, imagePath := range place.ImagePaths() {
 				_, err = copyImage(regionID, imagePath)
 				if err != nil {
-					log.Fatalf("generate: %v\n", err)
+					log.Fatalf("generate: failed to copy image: %v\n", err)
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {

@@ -52,6 +52,10 @@ func main() {
 	}
 
 	for _, dirEntry := range dirEntries {
+		if strings.HasPrefix(dirEntry.Name(), ".") {
+			continue
+		}
+
 		if strings.HasPrefix(dirEntry.Name(), "ic_") {
 			continue
 		}
@@ -60,6 +64,8 @@ func main() {
 		name := strings.TrimSuffix(fullName, filepath.Ext(fullName))
 		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
 		dstPath := fmt.Sprintf("images/compressed/%s.webp", name)
+
+		fmt.Printf("optimize %s: will optimized original image %s\n", placeID, srcPath)
 
 		err := makeImage(srcPath, dstPath)
 		if err != nil {
