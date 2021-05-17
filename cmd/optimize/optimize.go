@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	_ "image/jpeg"
@@ -13,11 +14,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	noIcons bool
+)
+
 func init() {
 	log.SetFlags(0)
+	flag.BoolVar(&noIcons, "no-icons", false, "don't optimize icons")
 }
 
 func main() {
+	flag.Parse()
 	currentDir, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("optimize: failed to get current working directory")
@@ -32,11 +39,13 @@ func main() {
 		log.Fatalf("optimize %s: no valid directory structure: %v\n", placeID, err)
 	}
 
-	err = makeIcon(originalIconPath, compressedIconPath)
-	if err != nil {
-		log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
+	if !noIcons {
+		err = makeIcon(originalIconPath, compressedIconPath)
+		if err != nil {
+			log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
+		}
+		fmt.Printf("optimize %s: created optimized icon\n", placeID)
 	}
-	fmt.Printf("optimize %s: created optimized icon\n", placeID)
 
 	dirEntries, err := os.ReadDir("images/original")
 	if err != nil {
@@ -86,25 +95,27 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 		}
 	}
 
-	// Does images/original/ have a JPG icon?
-	_, err = os.Stat(originalIconPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return errors.Wrapf(err, "%s does not exist", originalIconPath)
-		} else {
-			return errors.Wrapf(err, "stat %s", originalIconPath)
+	if !noIcons {
+		// Does images/original/ have a JPG icon?
+		_, err = os.Stat(originalIconPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return errors.Wrapf(err, "%s does not exist", originalIconPath)
+			} else {
+				return errors.Wrapf(err, "stat %s", originalIconPath)
+			}
 		}
-	}
 
-	// Is that JPG icon 1024x1024?
-	// TODO
-	w, h, err := getImageDimensions(originalIconPath)
-	if err != nil {
-		return errors.Wrap(err, "get image dimensions")
-	}
+		// Is that JPG icon 1024x1024?
+		// TODO
+		w, h, err := getImageDimensions(originalIconPath)
+		if err != nil {
+			return errors.Wrap(err, "get image dimensions")
+		}
 
-	if w != 1024 && h != 1024 {
-		return errors.Errorf("dimensions of %s are not 1024x1024", originalIconPath)
+		if w != 1024 && h != 1024 {
+			return errors.Errorf("dimensions of %s are not 1024x1024", originalIconPath)
+		}
 	}
 
 	// Does images/compressed/ directory exist?
