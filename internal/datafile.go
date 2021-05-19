@@ -12,6 +12,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Link struct {
+	Name       string `json:"name"`
+	WebsiteURL string `json:"website_url"`
+}
+
 // Datafile represents structure of data.json file.
 type Datafile struct {
 	Meta     Meta      `json:"meta"`
@@ -39,10 +44,10 @@ type Meta struct {
 	Featured []string `json:"featured"`
 
 	// Resources (websites, books) which provided data in the datafile.
-	Sources []struct {
-		Name       string `json:"name"`
-		WebsiteURL string `json:"website_url"`
-	} `json:"sources"`
+	Sources []Link `json:"sources"`
+
+	// Links to interesting websites related to the datafile.
+	Links []Link `json:"links"`
 }
 
 // Parse parses datafile's metadata and assigns it to meta
