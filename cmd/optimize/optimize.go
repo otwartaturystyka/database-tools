@@ -63,10 +63,21 @@ func main() {
 
 		fullName := dirEntry.Name()
 		name := strings.TrimSuffix(fullName, filepath.Ext(fullName))
+
+		// Make srcPat - either .jpg or .heic
 		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
+		_, err := os.Stat(srcPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				srcPath = fmt.Sprintf("images/original/%s.heic", name)
+			} else {
+				log.Fatalf("optimize %s: failed to stat %s: %v\n:", placeID, srcPath, err)
+			}
+		}
+
 		dstPath := fmt.Sprintf("images/compressed/%s.webp", name)
 
-		err := makeImage(srcPath, dstPath)
+		err = makeImage(srcPath, dstPath)
 		if err != nil {
 			log.Fatalf("optimize %s: failed to create optimized image %s: %v\n", placeID, name, err)
 		}

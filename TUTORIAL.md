@@ -8,7 +8,7 @@
 **Oryginalne**
 
 - wymiary: 1024x1024 px
-- format: JPG (bo najpopularniejszy i najszerzej wspierany)
+- format: JPG (bo najpopularniejszy i najszerzej wspierany) lub HEIC (bo zapewnia dobrą jakość w stosunku do miejsca)
 - maksymalny rozmiar: 2MB
 
 **Skompresowane**
