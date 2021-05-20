@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jdeng/goheif"
 	"github.com/pkg/errors"
 )
 
@@ -29,10 +30,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("optimize: failed to get current working directory")
 	}
-
 	placeID := filepath.Base(currentDir)
+
+	// Make srcPath - either .jpg or .heic
 	originalIconPath := fmt.Sprintf("images/original/ic_%s.jpg", placeID)
-	compressedIconPath := fmt.Sprintf("images/compressed/ic_%s.webp", placeID)
+	_, err = os.Stat(originalIconPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			originalIconPath = fmt.Sprintf("images/original/ic_%s.heic", placeID)
+		} else {
+			log.Fatalf("optimize %s: failed to stat %s: %v\n:", placeID, originalIconPath, err)
+		}
+	}
 
 	err = verifyValidDirectoryStructure(placeID, originalIconPath)
 	if err != nil {
@@ -40,6 +49,7 @@ func main() {
 	}
 
 	if !noIcons {
+		compressedIconPath := fmt.Sprintf("images/compressed/ic_%s.webp", placeID)
 		err = makeIcon(originalIconPath, compressedIconPath)
 		if err != nil {
 			log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
@@ -64,7 +74,7 @@ func main() {
 		fullName := dirEntry.Name()
 		name := strings.TrimSuffix(fullName, filepath.Ext(fullName))
 
-		// Make srcPat - either .jpg or .heic
+		// Make srcPath - either .jpg or .heic
 		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
 		_, err := os.Stat(srcPath)
 		if err != nil {
@@ -174,10 +184,20 @@ func getImageDimensions(imagePath string) (int, int, error) {
 		return 0, 0, err
 	}
 
-	image, _, err := image.DecodeConfig(file)
-	if err != nil {
-		return 0, 0, err
+	ext := filepath.Ext(imagePath)
+	var config image.Config
+
+	if ext == ".heic" {
+		config, err = goheif.DecodeConfig(file)
+		if err != nil {
+			return 0, 0, err
+		}
+	} else {
+		config, _, err = image.DecodeConfig(file)
+		if err != nil {
+			return 0, 0, err
+		}
 	}
 
-	return image.Width, image.Height, nil
+	return config.Width, config.Height, nil
 }
