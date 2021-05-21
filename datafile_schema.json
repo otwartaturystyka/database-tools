@@ -261,13 +261,6 @@
         "type": "object",
         "properties": {}
       }
-    },
-    "dayrooms": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {}
-      }
     }
   }
 }

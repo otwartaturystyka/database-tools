@@ -28,7 +28,7 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
-	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile")
+	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile (1 - compressed, 2 - original")
 	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 }
 
@@ -75,12 +75,6 @@ func main() {
 	}
 	datafile.Stories = stories
 
-	dayrooms, err := parseDayrooms(lang)
-	if err != nil {
-		log.Fatalf("generate: failed to parse dayrooms: %v\n", err)
-	}
-	datafile.Dayrooms = dayrooms
-
 	os.Chdir("../..")
 
 	fmt.Printf("generate: creating output dir...")
@@ -110,7 +104,7 @@ func main() {
 			for _, imagePath := range place.ImagePaths() {
 				_, err = copyImage(regionID, imagePath)
 				if err != nil {
-					log.Fatalf("generate: %v\n", err)
+					log.Fatalf("generate: failed to copy image: %v\n", err)
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
@@ -143,7 +137,6 @@ func makeMiniIcon(srcPath string) error {
 
 	miniIconFilename := "mini_" + filepath.Base(srcPath)
 	dstPath := filepath.Join(wd, "generated", regionID, "images", miniIconFilename)
-	// fmt.Printf("srcPath: %s, dstPath: %s\n", srcPath, dstPath)
 	err = exec.Command("magick", srcPath, "-quality", "60%", "-resize", "128x128", dstPath).Run()
 	if err != nil {
 		return errors.Wrapf(err, "failed to make a mini icon of image at %s", srcPath)

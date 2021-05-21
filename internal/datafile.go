@@ -6,5 +6,4 @@ type Datafile struct {
 	Sections []Section `json:"sections"`
 	Tracks   []Track   `json:"tracks"`
 	Stories  []Story   `json:"stories"`
-	Dayrooms []Dayroom `json:"dayrooms"`
 }

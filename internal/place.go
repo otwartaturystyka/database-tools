@@ -151,7 +151,7 @@ func (p *Place) makeActions(lang string) error {
 }
 
 func (p *Place) makeImagePaths(quality Quality) error {
-	wd, err := os.Getwd()
+	workingDir, err := os.Getwd()
 	if err != nil {
 		return errors.Wrap(err, "make image paths: failed to get working dir")
 	}
@@ -163,9 +163,9 @@ func (p *Place) makeImagePaths(quality Quality) error {
 		qualityDir = "original"
 	}
 
-	// s.Images were set when the story was parsed from its JSON.
+	// s.Images were set when the story was parsed from its JSON
 	for _, image := range p.Images {
-		absImagePath := filepath.Join(wd, "images", qualityDir, image+".webp")
+		absImagePath := filepath.Join(workingDir, "images", qualityDir, image+".webp")
 
 		if _, err := os.Stat(absImagePath); err != nil {
 			return errors.Errorf("image at %s does not exist!\n", absImagePath)
@@ -174,8 +174,8 @@ func (p *Place) makeImagePaths(quality Quality) error {
 		p.imagePaths = append(p.imagePaths, absImagePath)
 	}
 
-	// Add icon.
-	absIconPath := filepath.Join(wd, "images", qualityDir, p.Icon+".webp")
+	// Add icon
+	absIconPath := filepath.Join(workingDir, "images", qualityDir, p.Icon+".webp")
 	p.imagePaths = append(p.imagePaths, absIconPath)
 
 	return nil

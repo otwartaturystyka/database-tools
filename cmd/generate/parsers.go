@@ -24,6 +24,10 @@ func parseSections(lang string) ([]internal.Section, error) {
 	sections := make([]internal.Section, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse section %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
@@ -34,7 +38,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 		var section internal.Section
 		err = section.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse section \"%s\"", path)
+			return errors.Wrapf(err, "parse section %s", path)
 		}
 		os.Chdir("../..")
 
@@ -50,9 +54,16 @@ func parseSections(lang string) ([]internal.Section, error) {
 }
 
 func parseTracks(lang string) ([]internal.Track, error) {
-	tracks := make([]internal.Track, 0)
+	if _, err := os.Stat("tracks"); os.IsNotExist(err) {
+		return nil, nil
+	}
 
+	var tracks []internal.Track
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse track %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
@@ -74,14 +85,22 @@ func parseTracks(lang string) ([]internal.Track, error) {
 }
 
 func parseStories(lang string) ([]internal.Story, error) {
-	stories := make([]internal.Story, 0)
+	if _, err := os.Stat("stories"); os.IsNotExist(err) {
+		return nil, nil
+	}
+
+	var stories []internal.Story
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return errors.Wrapf(err, "parse story %s", path)
+		}
+
 		level := strings.Count(path, "/")
 		if level != 1 {
 			return nil
 		}
-		// Jump 2 levels down, to dayrooms directory.
+		// Jump 2 levels down, to the story's directory.
 		os.Chdir(path)
 
 		var story internal.Story
@@ -96,29 +115,4 @@ func parseStories(lang string) ([]internal.Story, error) {
 	err := filepath.Walk("stories", walker)
 
 	return stories, err
-}
-
-func parseDayrooms(lang string) ([]internal.Dayroom, error) {
-	dayrooms := make([]internal.Dayroom, 0)
-
-	walker := func(path string, info os.FileInfo, err error) error {
-		level := strings.Count(path, "/")
-		if level != 1 {
-			return nil
-		}
-		// Jump 2 levels down, to dayrooms directory.
-		os.Chdir(path)
-
-		var dayroom internal.Dayroom
-		err = dayroom.Parse(lang)
-
-		dayrooms = append(dayrooms, dayroom)
-		os.Chdir("../..")
-
-		return err
-	}
-
-	err := filepath.Walk("dayrooms", walker)
-
-	return dayrooms, err
 }

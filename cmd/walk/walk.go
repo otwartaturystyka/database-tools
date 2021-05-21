@@ -117,9 +117,14 @@ func main() {
 }
 
 func discover(jpegs *int, pngs *int, webps *int) (entries []entry, stats map[string]int) {
-	stats = make(map[string]int, 0)
+	stats = make(map[string]int)
 
 	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Println("walk: error walking:", err)
+			return nil
+		}
+
 		if strings.Contains(path, "/.git/") {
 			return nil
 		}

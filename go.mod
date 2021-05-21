@@ -10,4 +10,5 @@ require (
 	github.com/pkg/errors v0.9.1
 	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
 	google.golang.org/api v0.40.0
+	github.com/jdeng/goheif v0.0.0-20200323230657-a0d6a8b3e68f
 )
