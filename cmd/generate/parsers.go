@@ -21,7 +21,7 @@ func parseMeta(lang string) (internal.Meta, error) {
 }
 
 func parseSections(lang string) ([]internal.Section, error) {
-	var sections []internal.Section
+	sections := make([]internal.Section, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {

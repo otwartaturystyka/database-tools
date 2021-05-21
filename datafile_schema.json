@@ -1,0 +1,266 @@
+{
+  "$id": "datafile",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Generated data",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata of the datafile.",
+      "properties": {
+        "region_id": {
+          "type": "string",
+          "description": "Unique ID of the region."
+        },
+        "region_name": {
+          "type": "string",
+          "description": "Localized name of the region."
+        },
+        "center": {
+          "type": "object",
+          "description": "Latitude and longitude of the coarse center of the region. Format: DDD.DDDDD° (Decimal Degrees)",
+          "properties": {
+            "lat": {
+              "type": "number",
+              "description": "Latitude."
+            },
+            "lng": {
+              "type": "number",
+              "description": "Longitude."
+            }
+          },
+          "required": ["lat", "lng"]
+        },
+        "generated_at": {
+          "type": "string",
+          "description": "Timestamp when the datafile was generated. Format: ISO8601 (e.g 2021-04-06T22:57:38Z)"
+        },
+        "contributors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "People who contributed to the project in some way."
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Books, articles and websites that were used to provide information."
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Links leading to interesting websites, related to the region."
+        },
+        "required": [
+          "region_id",
+          "region_name",
+          "center",
+          "generated_at",
+          "contributors",
+          "featured",
+          "sources",
+          "links"
+        ]
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Sections in the datafile.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID of the section in the datafile."
+          },
+          "name": {
+            "type": "string",
+            "description": "Localized name of the section."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Filename of the section's icon."
+          },
+          "background_image": {
+            "type": "string",
+            "description": "Filename of the section's background image."
+          },
+          "quick_info": {
+            "type": "string",
+            "description": "Short and brief description on the section."
+          },
+          "places": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique ID of the place in the datafile."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Localized name of the place."
+                },
+                "section": {
+                  "type": "string",
+                  "description": "ID of the section the place belongs to."
+                },
+                "icon": {
+                  "type": "string",
+                  "description": "Filename of the place's icon."
+                },
+                "quick_info": {
+                  "type": "string",
+                  "description": "Short and brief description on the place."
+                },
+                "overview": {
+                  "type": "string",
+                  "description": "Longer description of the place, about 2-5x longer than quick_info."
+                },
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the place. Format: DDD.DDDDD° (Decimal Degrees)"
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the place. Format: DDD.DDDDD° (Decimal Degrees)"
+                },
+                "website_url": {
+                  "type": ["string", "null"],
+                  "description": "URL of the website that has more info about the place."
+                },
+                "facebook_url": {
+                  "type": ["string", "null"],
+                  "description": "URL of the place's Facebook page."
+                },
+                "headers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "content": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "actions": {
+                  "type": "array",
+                  "description": "Links to interesting resources related to the place.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "images": {
+                  "type": "array",
+                  "description": "Filenames of the place's images.",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "section",
+                "icon",
+                "quick_info",
+                "overview",
+                "lat",
+                "lng",
+                "website_url",
+                "facebook_url",
+                "headers",
+                "content",
+                "actions",
+                "images"
+              ]
+            }
+          }
+        },
+        "required": ["id", "name", "icon", "background_image", "quick_info", "places"]
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "description": "Bike trails in the datafile.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID of the trail in the datafile."
+          },
+          "name": {
+            "type": "string",
+            "description": "Localized name of the trail."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Filename of the trail's icon."
+          },
+          "quick_info": {
+            "type": "string",
+            "description": "Short and brief description on the section."
+          },
+          "coords": {
+            "type": "array",
+            "description": "Coordinates representing the trail on map.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lat": {
+                  "type": "number",
+                  "description": "Latitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                },
+                "lng": {
+                  "type": "number",
+                  "description": "Longitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                }
+              }
+            }
+          }
+        },
+        "required": ["id", "name", "quick_info", "overview", "images", "coords"]
+      }
+    },
+    "stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/readers"
@@ -29,7 +30,6 @@ var (
 	displayPosition int
 	onlyMeta        bool
 	verbose         bool
-	noTest          bool
 )
 
 var (
@@ -43,7 +43,6 @@ func init() {
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
 	flag.IntVar(&displayPosition, "position", 1, "position at which the datafile will show in the app")
 	flag.BoolVar(&onlyMeta, "only-meta", false, "upload only metadata (not the .zip file)")
-	flag.BoolVar(&noTest, "no-test", false, "upload to **production** collection in Firestore")
 	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
 	opt := option.WithCredentialsFile("./key.json")
@@ -73,17 +72,13 @@ func main() {
 		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
 	}
 
-	regionPrefix := regionID
+	prefixedRegionID := regionID
 	datafilesCollection := "datafiles"
-	if !noTest {
-		regionPrefix += "Test"
-		datafilesCollection += "Test"
-	}
 
 	// https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static %2Frudy%2Frudy.zip?alt=media
-	fileLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/"+zipFileInfo.Name()) + "?alt=media"
-	thumbLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb.webp") + "?alt=media"
-	thumbMiniLocation := appspotURL + url.QueryEscape("/"+regionPrefix+"/thumb_mini.webp") + "?alt=media"
+	fileLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/"+zipFileInfo.Name()) + "?alt=media"
+	thumbLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb.webp") + "?alt=media"
+	thumbMiniLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb_mini.webp") + "?alt=media"
 
 	fmt.Println("upload: fileLocation:", fileLocation)
 	fmt.Println("upload: thumbLocation:", thumbLocation)
@@ -111,7 +106,7 @@ func main() {
 		LastUploadedTime: readers.CurrentTime(),
 		GeneratedAt:      meta.GeneratedAt,
 		UploadedAt:       readers.CurrentTime(),
-		IsTestVersion:    !noTest,
+		IsTestVersion:    false,
 		Position:         displayPosition,
 		RegionID:         regionID,
 		RegionName:       meta.RegionName,
@@ -126,7 +121,7 @@ func main() {
 	}
 	fmt.Println(string(datafileDataJSON))
 
-	accepted, err := readers.AskForConfirmation("upload: continue?", false)
+	accepted, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "upload: continue?", false)
 	if err != nil {
 		log.Fatalf("\nupload: failed to get response: %v\n", err)
 	}
@@ -140,7 +135,7 @@ func main() {
 	if !onlyMeta {
 		func() {
 			localPath := filepath.Join("compressed", regionID+".zip")
-			cloudPath := "static/" + regionPrefix + "/rudy.zip"
+			cloudPath := path.Join("static", prefixedRegionID, regionID+".zip")
 			upload(localPath, cloudPath, "application/zip")
 		}()
 	}
@@ -148,14 +143,14 @@ func main() {
 	// Upload thumb
 	func() {
 		localPath := filepath.Join("database", regionID+"/meta/thumb.webp")
-		cloudPath := "static/" + regionPrefix + "/thumb.webp"
+		cloudPath := path.Join("static", prefixedRegionID, "thumb.webp")
 		upload(localPath, cloudPath, "image/webp")
 	}()
 
 	// Upload minified thumb
 	func() {
 		localPath := filepath.Join("database", regionID+"/meta/thumb_mini.webp")
-		cloudPath := "static/" + regionPrefix + "/thumb_mini.webp"
+		cloudPath := path.Join("static", prefixedRegionID, "thumb_mini.webp")
 		upload(localPath, cloudPath, "image/webp")
 	}()
 

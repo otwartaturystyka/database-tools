@@ -11,11 +11,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Action struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 // Place represents single place in real world.
 type Place struct {
 	ID          string   `json:"id"`
@@ -26,8 +21,8 @@ type Place struct {
 	Overview    string   `json:"overview"`
 	Lat         float32  `json:"lat"`
 	Lng         float32  `json:"lng"`
-	WebsiteURL  string   `json:"website_url"`
-	FacebookURL string   `json:"facebook_url"`
+	WebsiteURL  *string  `json:"website_url"`
+	FacebookURL *string  `json:"facebook_url"`
 	Headers     []string `json:"headers"`
 	Content     []string `json:"content"`
 	Actions     []Action `json:"actions"`
@@ -77,6 +72,7 @@ func (p *Place) Parse(lang string) error {
 	// Headers and content
 	p.Headers = make([]string, 0)
 	p.Content = make([]string, 0)
+	p.Actions = make([]Action, 0)
 	for i := 0; true; i++ {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
 		textFile, err := os.Open(textFilePath)
@@ -89,7 +85,7 @@ func (p *Place) Parse(lang string) error {
 			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
 		}
 
-		header, content, err := readers.ReadTextualData(textFile)
+		header, content, err := readers.ReadTextualData(textFile, textFile.Name())
 		if err != nil {
 			return err
 		}
@@ -111,12 +107,10 @@ func (p *Place) Parse(lang string) error {
 }
 
 func (p *Place) makeActions(lang string) error {
-	p.Actions = make([]Action, 0)
-
 	actionValuesFile, err := readers.ReadFromFile("actions.json")
 	if err != nil {
 		fmt.Printf("file %s of place %s does not exist (most probably, this place does not have any actions)\n", "actions.json", p.ID)
-		return nil // Actions are the last thing to parse, so if there are none, we're good to return
+		return nil
 	}
 
 	// Read action values from JSON

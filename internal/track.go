@@ -2,20 +2,18 @@ package internal
 
 import (
 	"encoding/json"
+
 	"github.com/bartekpacia/database-tools/readers"
 )
 
 // Track represents a bike trail or some other "long" geographical object.
 type Track struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	QuickInfo string   `json:"quick_info"`
-	Overview  string   `json:"overview"`
-	Images    []string `json:"images"`
-	Coords    []struct {
-		Lat float32 `json:"lat"`
-		Lng float32 `json:"lng"`
-	} `json:"coords"`
+	ID        string     `json:"id"`
+	Name      string     `json:"name"`
+	QuickInfo string     `json:"quick_info"`
+	Overview  string     `json:"overview"`
+	Images    []string   `json:"images"`
+	Coords    []Location `json:"coords"`
 }
 
 // Parse parses track data from its directory and assigns
