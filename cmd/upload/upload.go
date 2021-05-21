@@ -25,11 +25,12 @@ const (
 )
 
 var (
-	regionID        string
-	lang            string
-	displayPosition int
-	onlyMeta        bool
-	verbose         bool
+	regionID string
+	lang     string
+	position int
+	noTest   bool
+	onlyMeta bool
+	verbose  bool
 )
 
 var (
@@ -41,7 +42,8 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
 	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
-	flag.IntVar(&displayPosition, "position", 1, "position at which the datafile will show in the app")
+	flag.IntVar(&position, "position", 1, "position at which the datafile will show in the app")
+	flag.BoolVar(&noTest, "no-test", false, "upload to **production** collection in Firestore")
 	flag.BoolVar(&onlyMeta, "only-meta", false, "upload only metadata (not the .zip file)")
 	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
@@ -74,6 +76,10 @@ func main() {
 
 	prefixedRegionID := regionID
 	datafilesCollection := "datafiles"
+	if !noTest {
+		prefixedRegionID += "Test"
+		datafilesCollection += "Test"
+	}
 
 	// https://firebasestorage.googleapis.com/v0/b/discoverrudy.appspot.com/o/static %2Frudy%2Frudy.zip?alt=media
 	fileLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/"+zipFileInfo.Name()) + "?alt=media"
@@ -106,8 +112,8 @@ func main() {
 		LastUploadedTime: readers.CurrentTime(),
 		GeneratedAt:      meta.GeneratedAt,
 		UploadedAt:       readers.CurrentTime(),
-		IsTestVersion:    false,
-		Position:         displayPosition,
+		IsTestVersion:    !noTest,
+		Position:         position,
 		RegionID:         regionID,
 		RegionName:       meta.RegionName,
 		ThumbBlurhash:    thumbBlurhash,
