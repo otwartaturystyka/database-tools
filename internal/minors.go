@@ -12,6 +12,11 @@ type Location struct {
 	Lng float32 `json:"lng"`
 }
 
+type Link struct {
+	Name       string `json:"name"`
+	WebsiteURL string `json:"website_url"`
+}
+
 // Quality represents quality of an image.
 type Quality int
 

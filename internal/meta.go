@@ -9,11 +9,6 @@ import (
 	"github.com/bartekpacia/database-tools/readers"
 )
 
-type Link struct {
-	Name       string `json:"name"`
-	WebsiteURL string `json:"website_url"`
-}
-
 // Meta represents the JSON object in the beginning of data.json file.
 type Meta struct {
 	// Short, lowercase ID of the datafile's region.
