@@ -54,11 +54,12 @@ func parseSections(lang string) ([]internal.Section, error) {
 }
 
 func parseTracks(lang string) ([]internal.Track, error) {
+	tracks := make([]internal.Track, 0)
+
 	if _, err := os.Stat("tracks"); os.IsNotExist(err) {
-		return nil, nil
+		return tracks, nil
 	}
 
-	var tracks []internal.Track
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return errors.Wrapf(err, "parse track %s", path)
@@ -85,11 +86,11 @@ func parseTracks(lang string) ([]internal.Track, error) {
 }
 
 func parseStories(lang string) ([]internal.Story, error) {
-	if _, err := os.Stat("stories"); os.IsNotExist(err) {
-		return nil, nil
-	}
+	stories := make([]internal.Story, 0)
 
-	var stories []internal.Story
+	if _, err := os.Stat("stories"); os.IsNotExist(err) {
+		return stories, nil
+	}
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
