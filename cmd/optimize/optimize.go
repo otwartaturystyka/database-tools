@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"image"
@@ -12,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/jdeng/goheif"
-	"github.com/pkg/errors"
 )
 
 var (
@@ -99,20 +99,20 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 	// Does the images/ directory even exist?
 	_, err := os.Stat("images")
 	if err != nil {
-		if os.IsNotExist(err) {
-			return errors.New("images/ dir does not exist")
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("images/ dir does not exist")
 		} else {
-			return errors.Wrap(err, "stat images")
+			return fmt.Errorf("stat images/ dir: %w", err)
 		}
 	}
 
 	// Does images/original/ directory exist?
 	_, err = os.Stat("images/original")
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return errors.New("images/original/ dir does not exist")
 		} else {
-			return errors.Wrap(err, "stat images/original/")
+			return fmt.Errorf("stat images/original/ dir: %w", err)
 		}
 	}
 
@@ -120,10 +120,10 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 		// Does images/original/ have a JPG icon?
 		_, err = os.Stat(originalIconPath)
 		if err != nil {
-			if os.IsNotExist(err) {
-				return errors.Wrapf(err, "%s does not exist", originalIconPath)
+			if errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("icon at %s does not exist", originalIconPath)
 			} else {
-				return errors.Wrapf(err, "stat %s", originalIconPath)
+				return fmt.Errorf("stat icon at %s: %w", originalIconPath, err)
 			}
 		}
 
@@ -131,11 +131,11 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 		// TODO
 		w, h, err := getImageDimensions(originalIconPath)
 		if err != nil {
-			return errors.Wrap(err, "get image dimensions")
+			return fmt.Errorf("get image dimensions: %w", err)
 		}
 
 		if w != 1024 && h != 1024 {
-			return errors.Errorf("dimensions of %s are not 1024x1024", originalIconPath)
+			return fmt.Errorf("dimensions of %s are not 1024x1024", originalIconPath)
 		}
 	}
 
@@ -149,7 +149,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 			}
 			fmt.Printf("optimize %s: images/compressed/ dir was created\n", placeID)
 		} else {
-			return errors.Wrap(err, "stat images/compressed/")
+			return fmt.Errorf("stat images/compressed/ dir: %w", err)
 		}
 	}
 
@@ -161,7 +161,7 @@ func makeIcon(srcPath string, dstPath string) error {
 	cmd := exec.Command("magick", srcPath, "-resize", "512x512", dstPath)
 	err := cmd.Run()
 	if err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("run ImageMagick for icon at %s: %w", srcPath, err)
 	}
 
 	return nil
@@ -172,7 +172,7 @@ func makeImage(srcPath string, dstPath string) error {
 	cmd := exec.Command("magick", srcPath, "-resize", "25%", "-quality", "75", dstPath)
 	err := cmd.Run()
 	if err != nil {
-		return errors.WithStack(err)
+		return fmt.Errorf("run ImageMagick for image at %s: %w", srcPath, err)
 	}
 
 	return nil
