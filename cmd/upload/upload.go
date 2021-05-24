@@ -129,7 +129,7 @@ func main() {
 
 	accepted, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "upload: continue?", false)
 	if err != nil {
-		log.Fatalf("\nupload: failed to get response: %v\n", err)
+		log.Fatalf("\nupload: failed to ask for confirmation: %v\n", err)
 	}
 
 	if !accepted {

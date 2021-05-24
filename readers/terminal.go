@@ -2,14 +2,13 @@ package readers
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
-// AskForConfirmation prints message to stdout and presents user
-// with the boolean choice. It returns a bool indicating whether the user
+// AskForConfirmation prints message to stdout and prompts the user
+// to say yes or no. It returns a bool indicating whether the user
 // agreed or rejected or and error, when user's response is invalid.
 func AskForConfirmation(r io.Reader, w io.Writer, message string, defaultYes bool) (bool, error) {
 	yesAnswers := make(map[string]bool)
@@ -31,7 +30,7 @@ func AskForConfirmation(r io.Reader, w io.Writer, message string, defaultYes boo
 	reader := bufio.NewReader(r)
 	response, err := reader.ReadString('\n')
 	if err != nil {
-		return false, errors.WithStack(err)
+		return false, fmt.Errorf("failed to read from reader: %w", err)
 	}
 
 	if yesAnswers[response] {

@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 
-	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
 	"github.com/bartekpacia/database-tools/readers"
@@ -27,8 +26,6 @@ var (
 )
 
 var (
-	firebaseApp     *firebase.App
-	firestoreClient *firestore.Client
 	messagingClient *messaging.Client
 )
 
@@ -43,20 +40,14 @@ func init() {
 
 	opt := option.WithCredentialsFile("./key.json")
 
-	var err error
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		log.Fatalf("notify: failed to initialize firebase app")
-	}
-
-	firestoreClient, err = app.Firestore(context.Background())
-	if err != nil {
-		log.Fatalf("notify: failed to initialize firestore: %v\n", err)
+		log.Fatalf("notify: failed to initialize firebase app: %v\n", err)
 	}
 
 	messagingClient, err = app.Messaging(context.Background())
 	if err != nil {
-		log.Fatalf("notify: failed to initialize messaging")
+		log.Fatalf("notify: failed to initialize messaging: %v\n", err)
 	}
 }
 
@@ -90,7 +81,7 @@ func main() {
 
 	confirmed, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "notify: send the message?", false)
 	if err != nil {
-		log.Fatalf("\nnotify: failed to get response: %v\n", err)
+		log.Fatalf("\nupload: failed to ask for confirmation: %v\n", err)
 	}
 
 	if !confirmed {
