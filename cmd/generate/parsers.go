@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bartekpacia/database-tools/internal"
-	"github.com/pkg/errors"
 )
 
 func parseMeta(lang string) (internal.Meta, error) {
@@ -25,7 +25,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "parse section %s", path)
+			return fmt.Errorf("parse section %s: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")
@@ -38,7 +38,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 		var section internal.Section
 		err = section.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse section %s", path)
+			return fmt.Errorf("parse section %s: %w", path, err)
 		}
 		os.Chdir("../..")
 
@@ -47,7 +47,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 	}
 	err := filepath.Walk("sections", walker)
 	if err != nil {
-		return sections, errors.Wrapf(err, "walk sections")
+		return sections, fmt.Errorf("walk sections: %w", err)
 	}
 
 	return sections, err
@@ -62,7 +62,7 @@ func parseTracks(lang string) ([]internal.Track, error) {
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "parse track %s", path)
+			return fmt.Errorf("parse track %s: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")
@@ -94,7 +94,7 @@ func parseStories(lang string) ([]internal.Story, error) {
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "parse story %s", path)
+			return fmt.Errorf("parse story %s: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")

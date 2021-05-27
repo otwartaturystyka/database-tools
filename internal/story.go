@@ -2,11 +2,11 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/readers"
-	"github.com/pkg/errors"
 )
 
 // Story represents a longer piece of text about a particular topic.
@@ -41,13 +41,13 @@ func (s *Story) Parse(lang string) error {
 
 	err = s.makeMarkdownPath(lang)
 	if err != nil {
-		return errors.Wrap(err, "makeMarkdownPath")
+		return fmt.Errorf("make markdown path: %w", err)
 	}
 
 	s.imagePaths = make([]string, 0)
 	err = s.makeImagePaths(Compressed)
 	if err != nil {
-		return errors.Wrap(err, "makeImagesPath")
+		return fmt.Errorf("make images paths: %w", err)
 	}
 
 	return nil
@@ -56,7 +56,7 @@ func (s *Story) Parse(lang string) error {
 func (s *Story) makeMarkdownPath(lang string) error {
 	wd, err := os.Getwd()
 	if err != nil {
-		return errors.Wrap(err, "failed to get working dir")
+		return fmt.Errorf("get working dir: %w", err)
 	}
 
 	s.markdownPath = wd + "/" + lang + "/" + s.MarkdownFile + ".md"
@@ -66,7 +66,7 @@ func (s *Story) makeMarkdownPath(lang string) error {
 func (s *Story) makeImagePaths(quality Quality) error {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return err
+		return fmt.Errorf("get working dir: %w", err)
 	}
 
 	var qualityDir string

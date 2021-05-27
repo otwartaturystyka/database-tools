@@ -2,11 +2,11 @@ package readers
 
 import (
 	"bufio"
+	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // ReadFromFile opens and reads from file at filepath. It gracefully
@@ -14,13 +14,13 @@ import (
 func ReadFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to open file %s", filepath)
+		return nil, fmt.Errorf("failed to open file %s: %w", filepath, err)
 	}
 	defer file.Close()
 
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
-		return nil, errors.Errorf("failed to read contents from file %s", filepath)
+		return nil, fmt.Errorf("failed to read contents from file %s: %w", filepath, err)
 	}
 
 	return fileContent, nil
@@ -34,7 +34,7 @@ func ReadTextualData(file io.Reader, filename string) (header string, content st
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read header (line 1) from file %s: %v", filename, err)
+			err = fmt.Errorf("failed to read header (line 1) from file %s: %w", filename, err)
 			return
 		}
 	}
@@ -45,7 +45,7 @@ func ReadTextualData(file io.Reader, filename string) (header string, content st
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read 3-slash divider (line 2) from file %s: %v", filename, err)
+			err = fmt.Errorf("failed to read 3-slash divider (line 2) from file %s: %w", filename, err)
 			return
 		}
 	}
@@ -55,7 +55,7 @@ func ReadTextualData(file io.Reader, filename string) (header string, content st
 		if errors.Is(err, io.EOF) {
 			err = nil
 		} else {
-			err = errors.Errorf("failed to read content (line 3) from file %s: %v", filename, err)
+			err = fmt.Errorf("failed to read content (line 3) from file %s: %w", filename, err)
 			return
 		}
 	}

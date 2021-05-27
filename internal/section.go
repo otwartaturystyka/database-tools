@@ -2,12 +2,12 @@ package internal
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bartekpacia/database-tools/readers"
-	"github.com/pkg/errors"
 )
 
 // Section represents places of similiar type and associated metadata.
@@ -33,13 +33,13 @@ func (section *Section) Parse(lang string) error {
 		return err
 	}
 
-	name, err := readers.ReadFromFile("content/" + lang + "/name.txt")
+	name, err := readers.ReadFromFile(filepath.Join("content", lang, "name.txt"))
 	if err != nil {
 		return err
 	}
 	section.Name = string(name)
 
-	quickInfo, err := readers.ReadFromFile("content/" + lang + "/quick_info.txt")
+	quickInfo, err := readers.ReadFromFile(filepath.Join("content", lang, "quick_info.txt"))
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (section *Section) Parse(lang string) error {
 	places := make([]Place, 0, 50)
 	placesWalker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return errors.Wrapf(err, "parse place %#s", path)
+			return fmt.Errorf("parse place %#v: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")
@@ -62,7 +62,7 @@ func (section *Section) Parse(lang string) error {
 		var place Place
 		err = place.Parse(lang)
 		if err != nil {
-			return errors.Wrapf(err, "parse place %#s", path)
+			return fmt.Errorf("parse place %#v: %w", path, err)
 		}
 		os.Chdir("../..")
 
@@ -72,7 +72,7 @@ func (section *Section) Parse(lang string) error {
 
 	err = filepath.Walk("places", placesWalker)
 	if err != nil {
-		return errors.Wrap(err, "walk places")
+		return fmt.Errorf("walk places: %w", err)
 	}
 
 	section.Places = places

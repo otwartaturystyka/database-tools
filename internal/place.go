@@ -2,13 +2,13 @@ package internal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bartekpacia/database-tools/readers"
-	"github.com/pkg/errors"
 )
 
 // Place represents single place in real world.
@@ -47,23 +47,23 @@ func (p *Place) Parse(lang string) error {
 
 	err = p.makeImagePaths(Compressed)
 	if err != nil {
-		return errors.Wrapf(err, "make image paths for place %s", p.ID)
+		return fmt.Errorf("make image paths for place %s: %w", p.ID, err)
 	}
 
 	// Content
-	name, err := readers.ReadFromFile("content/" + lang + "/name.txt")
+	name, err := readers.ReadFromFile(filepath.Join("content", lang, "name.txt"))
 	if err != nil {
 		return err
 	}
 	p.Name = strings.TrimSuffix(string(name), "\n")
 
-	quickInfo, err := readers.ReadFromFile("content/" + lang + "/quick_info.txt")
+	quickInfo, err := readers.ReadFromFile(filepath.Join("content", lang, "quick_info.txt"))
 	if err != nil {
 		return err
 	}
 	p.QuickInfo = strings.TrimSuffix(string(quickInfo), "\n")
 
-	overview, err := readers.ReadFromFile("content/" + lang + "/overview.txt")
+	overview, err := readers.ReadFromFile(filepath.Join("content", lang, "overview.txt"))
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (p *Place) Parse(lang string) error {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
 		textFile, err := os.Open(textFilePath)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if errors.Is(err, os.ErrNotExist) {
 				fmt.Printf("file %s of place %s does not exist (most probably, this place does not have additional content)\n", textFilePath, p.ID)
 				break
 			}
@@ -99,7 +99,7 @@ func (p *Place) Parse(lang string) error {
 
 		err = p.makeActions(lang)
 		if err != nil {
-			return errors.Wrapf(err, "make actions for place %s", p.ID)
+			return fmt.Errorf("make actions for place %s: %w", p.ID, err)
 		}
 	}
 
@@ -131,7 +131,7 @@ func (p *Place) makeActions(lang string) error {
 				break
 			}
 
-			return errors.WithStack(err)
+			return err
 		}
 
 		actionName := strings.TrimSuffix(string(b), "\n")
@@ -153,7 +153,7 @@ func (p *Place) makeActions(lang string) error {
 func (p *Place) makeImagePaths(quality Quality) error {
 	workingDir, err := os.Getwd()
 	if err != nil {
-		return errors.Wrap(err, "make image paths: failed to get working dir")
+		return fmt.Errorf("get working dir: %w", err)
 	}
 
 	var qualityDir string
@@ -168,7 +168,7 @@ func (p *Place) makeImagePaths(quality Quality) error {
 		absImagePath := filepath.Join(workingDir, "images", qualityDir, image+".webp")
 
 		if _, err := os.Stat(absImagePath); err != nil {
-			return errors.Errorf("image at %s does not exist!\n", absImagePath)
+			return fmt.Errorf("image at %s does not exist: %w", absImagePath, err)
 		}
 
 		p.imagePaths = append(p.imagePaths, absImagePath)

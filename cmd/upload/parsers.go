@@ -1,14 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"golang.org/x/image/webp"
-
 	"github.com/bartekpacia/database-tools/internal"
 	"github.com/bbrks/go-blurhash"
-	"github.com/pkg/errors"
+	"golang.org/x/image/webp"
 )
 
 // ParseMeta parses metadata for the generated datafile of ID regionID.
@@ -16,25 +15,25 @@ func parseMeta(regionID string, lang string) (*internal.Meta, error) {
 	datafilePath := filepath.Join("generated", regionID)
 
 	if err := os.Chdir(datafilePath); err != nil {
-		return nil, errors.Wrapf(err, "failed to chdir into generated datafile's at %s", datafilePath)
+		return nil, fmt.Errorf("chdir into generated datafile's dir at %s: %w", datafilePath, err)
 	}
 
 	var meta internal.Meta
 	err := meta.ParseFromGenerated()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse meta from a generated datafile's data.json at %s", datafilePath)
+		return nil, fmt.Errorf("parse meta from generated datafile's data.json at %s: %w", datafilePath, err)
 	}
 
 	err = os.Chdir("../../")
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to exit (aka go 2 dirs up) generated datafile's path at %s ", datafilePath)
+		return nil, fmt.Errorf("exit (=chdir 2 dirs up) generated datafile's dir at %s: %w", datafilePath, err)
 	}
 
 	return &meta, nil
 }
 
 func makeThumbBlurhash(regionID string) (blur string, err error) {
-	file, err := os.Open("database/" + regionID + "/meta/thumb_mini.webp")
+	file, err := os.Open(filepath.Join("database", regionID, "meta", "thumb_mini.webp"))
 	if err != nil {
 		return "", err
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -11,10 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bartekpacia/database-tools/readers"
-
 	"github.com/bartekpacia/database-tools/internal"
-	"github.com/pkg/errors"
+	"github.com/bartekpacia/database-tools/readers"
 )
 
 var (
@@ -108,7 +107,10 @@ func main() {
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
-					makeMiniIcon(imagePath)
+					err = makeMiniIcon(imagePath)
+					if err != nil {
+						log.Fatalf("generate: failed to make mini icon at %s: %v\n", imagePath, err)
+					}
 				}
 			}
 		}
@@ -132,14 +134,14 @@ func main() {
 func makeMiniIcon(srcPath string) error {
 	wd, err := os.Getwd()
 	if err != nil {
-		return errors.Wrap(err, "failed to get working dir")
+		return fmt.Errorf("get working dir: %w", err)
 	}
 
 	miniIconFilename := "mini_" + filepath.Base(srcPath)
 	dstPath := filepath.Join(wd, "generated", regionID, "images", miniIconFilename)
 	err = exec.Command("magick", srcPath, "-quality", "60%", "-resize", "128x128", dstPath).Run()
 	if err != nil {
-		return errors.Wrapf(err, "failed to make a mini icon of image at %s", srcPath)
+		return fmt.Errorf("run ImageMagick on image at %s: %w", srcPath, err)
 	}
 
 	return nil
@@ -158,23 +160,23 @@ func copyMarkdown(regionID string, srcPath string) (int, error) {
 func copyFile(regionID string, srcPath string, subdir string) (int, error) {
 	wd, err := os.Getwd()
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to get working dir")
+		return 0, fmt.Errorf("get working dir: %w", err)
 	}
 
-	dstPath := wd + "/generated/" + regionID + "/" + subdir + "/" + filepath.Base(srcPath)
 	src, err := os.Open(srcPath)
 	if err != nil {
-		return 0, errors.Errorf("failed to open src file at %s", srcPath)
+		return 0, fmt.Errorf("open src file at %s: %w", srcPath, err)
 	}
 
+	dstPath := filepath.Join(wd, "generated", regionID, subdir, filepath.Base(srcPath))
 	dst, err := os.Create(dstPath)
 	if err != nil {
-		return 0, errors.Errorf("failed to create dst file at %s", dstPath)
+		return 0, fmt.Errorf("create dst file at %s: %w", dstPath, err)
 	}
 
 	n, err := io.Copy(dst, src)
 	if err != nil {
-		return 0, errors.Errorf("failed to copy file from %s to %s", srcPath, dstPath)
+		return 0, fmt.Errorf("copy file from %s to %s: %w", srcPath, dstPath, err)
 	}
 
 	return int(n), nil
@@ -183,46 +185,47 @@ func copyFile(regionID string, srcPath string, subdir string) (int, error) {
 // CreateOutputDir creates a datafile directory structure inside generated/ in project root.
 func createOutputDir(regionID string) (*os.File, error) {
 	generatedPath := "generated"
-	outputDirPath := generatedPath + "/" + regionID
+	outputDirPath := filepath.Join(generatedPath, regionID)
 
 	// Check if the generated dir exists...
-	if _, err := os.Stat(generatedPath); err != nil {
-		if os.IsNotExist(err) {
+	_, err := os.Stat(generatedPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
 			err = os.Mkdir(generatedPath, 0755)
 			if err != nil {
-				return nil, errors.Errorf("dir %#v does not exist and cannot be created", generatedPath)
+				return nil, fmt.Errorf("dir %#v does not exist and cannot be created: %w", generatedPath, err)
 			}
 		} else {
-			return nil, errors.Errorf("failed to stat %#v dir", generatedPath)
+			return nil, fmt.Errorf("stat %#v dir: %w", generatedPath, err)
 		}
 	}
 
-	err := os.RemoveAll(outputDirPath)
+	err = os.RemoveAll(outputDirPath)
 	if err != nil {
-		return nil, errors.Errorf("failed to remove output dir %#v", outputDirPath)
+		return nil, fmt.Errorf("remove output dir %#v: %w", outputDirPath, err)
 	}
 
 	err = os.Mkdir(outputDirPath, 0755)
 	if err != nil {
-		return nil, errors.Errorf("failed to make dir %#v", outputDirPath)
+		return nil, fmt.Errorf("make output dir %#v: %w", outputDirPath, err)
 	}
 
-	imagesDirPath := outputDirPath + "/images"
+	imagesDirPath := filepath.Join(outputDirPath, "images")
 	err = os.Mkdir(imagesDirPath, 0755)
 	if err != nil {
-		return nil, errors.Errorf("failed to make dir %#v (for images)", imagesDirPath)
+		return nil, fmt.Errorf("make dir %#v (for images): %w", imagesDirPath, err)
 	}
 
-	storiesDirPath := outputDirPath + "/stories"
+	storiesDirPath := filepath.Join(outputDirPath, "stories")
 	err = os.Mkdir(storiesDirPath, 0755)
 	if err != nil {
-		return nil, errors.Errorf("failed to make dir %#v (for stories)", storiesDirPath)
+		return nil, fmt.Errorf("make dir %#v (for stories): %w", storiesDirPath, err)
 	}
 
-	dataJSONPath := outputDirPath + "/data.json"
+	dataJSONPath := filepath.Join(outputDirPath, "data.json")
 	dataJSONFile, err := os.Create(dataJSONPath)
 	if err != nil {
-		return nil, errors.Errorf("failed to create file %#v (the main json file)", dataJSONPath)
+		return nil, fmt.Errorf("create file %#v (the main json file): %w", dataJSONPath, err)
 	}
 
 	return dataJSONFile, nil
