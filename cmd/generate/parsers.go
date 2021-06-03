@@ -25,7 +25,7 @@ func parseSections(lang string) ([]internal.Section, error) {
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("parse section %s: %w", path, err)
+			return fmt.Errorf("start walk section %s: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")

@@ -49,7 +49,7 @@ func (section *Section) Parse(lang string) error {
 	places := make([]Place, 0, 50)
 	placesWalker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("parse place %#v: %w", path, err)
+			return fmt.Errorf("start walk place %#v: %w", path, err)
 		}
 
 		level := strings.Count(path, "/")
