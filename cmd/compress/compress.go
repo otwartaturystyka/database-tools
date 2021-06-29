@@ -1,4 +1,4 @@
-package main
+package compress
 
 import (
 	"archive/zip"
@@ -15,18 +15,20 @@ func init() {
 	log.SetPrefix("compress: ")
 }
 
-func Compress(regionID string, verbose bool) {
+// TODO:
+// - improve error handling
+func Compress(regionID string, verbose bool) error {
 	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {
 		err = os.Mkdir("compressed", 0755)
 		if err != nil {
-			log.Fatalf("compress: error creating compressed directory: %v\n", err)
+			return fmt.Errorf("compress: error creating compressed directory: %v", err)
 		}
 	}
 
 	zipFile, err := os.Create(filepath.Join("compressed", regionID+".zip"))
 	if err != nil {
-		log.Fatalln("compress: failed to create zip file")
+		return fmt.Errorf("compress: failed to create zip file: %v", err)
 	}
 	defer zipFile.Close()
 
@@ -90,4 +92,6 @@ func Compress(regionID string, verbose bool) {
 	}
 
 	fmt.Println("compress: successfully compressed datafile", regionID)
+
+	return nil
 }

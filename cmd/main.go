@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/bartekpacia/database-tools/cmd/compress"
+	"github.com/bartekpacia/database-tools/cmd/upload"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,12 +28,75 @@ var compressCommand = cli.Command{
 			Value:   "",
 			Usage:   "region whose generated directory will be compressed",
 		},
+		&cli.BoolFlag{
+			Name:    "verbose",
+			Aliases: []string{"v"},
+			Value:   false,
+			Usage:   "print extensive logs",
+		},
 	},
 	Action: func(c *cli.Context) error {
-		if c.String("region-id") == "" {
+		regionID := c.String("region-id")
+		verbose := c.Bool("verbose")
+
+		if regionID == "" {
 			return errors.New("region-id is empty")
 		}
 
+		compress.Compress(regionID, verbose)
+
+		return nil
+	},
+}
+
+var uploadCommand = cli.Command{
+	Name:  "upload",
+	Usage: "upload a zip archive to the server",
+	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
+		log.Println("error:", err)
+		return nil
+	},
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "region-id",
+			Aliases: []string{"id"},
+			Value:   "",
+			Usage:   "region whose zip archive will be uploaded",
+		},
+		&cli.StringFlag{
+			Name:  "lang",
+			Value: "pl",
+			Usage: "language of the zip archive that will be uploaded",
+		},
+		&cli.IntFlag{
+			Name:    "position",
+			Aliases: []string{"pos"},
+			Value:   1,
+			Usage:   "position at which the datafile will be shown in the app",
+		},
+		&cli.BoolFlag{
+			Name:  "only-meta",
+			Value: false,
+			Usage: "upload only region's metadata, not the zip archive",
+		},
+		&cli.BoolFlag{
+			Name:  "prod",
+			Value: false,
+			Usage: "(dangerous!) upload to production collection (default is test collection)",
+		},
+	},
+	Action: func(c *cli.Context) error {
+		regionID := c.String("region-id")
+		lang := c.String("lang")
+		position := c.Int("position")
+		onlyMeta := c.Bool("onlyMeta")
+		prod := c.Bool("prod")
+
+		if regionID == "" {
+			return errors.New("region-id is empty")
+		}
+
+		upload.Upload(regionID, lang, position, onlyMeta, prod)
 		return nil
 	},
 }
@@ -46,6 +111,7 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			&compressCommand,
+			&uploadCommand,
 		},
 		CommandNotFound: func(c *cli.Context, command string) {
 			log.Printf("invalid command '%s'. See 'touristdb --help'\n", command)

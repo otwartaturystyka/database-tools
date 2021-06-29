@@ -1,9 +1,8 @@
-package main
+package upload
 
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -25,27 +24,12 @@ const (
 )
 
 var (
-	regionID string
-	lang     string
-	position int
-	noTest   bool
-	onlyMeta bool
-	verbose  bool
-)
-
-var (
 	firestoreClient *firestore.Client
 	storageClient   *storage.Client
 )
 
 func init() {
 	log.SetFlags(0)
-	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
-	flag.StringVar(&lang, "lang", "pl", "language of the datafile to upload")
-	flag.IntVar(&position, "position", 1, "position at which the datafile will show in the app")
-	flag.BoolVar(&noTest, "no-test", false, "upload to **production** collection in Firestore")
-	flag.BoolVar(&onlyMeta, "only-meta", false, "upload only metadata (not the .zip file)")
-	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
 	opt := option.WithCredentialsFile("./key.json")
 
@@ -61,13 +45,7 @@ func init() {
 	}
 }
 
-func main() {
-	flag.Parse()
-
-	if regionID == "" {
-		log.Fatalln("compress: regionID is empty")
-	}
-
+func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool) {
 	zipFilePath := "compressed/" + regionID + ".zip"
 	zipFileInfo, err := os.Stat(zipFilePath)
 	if os.IsNotExist(err) {
@@ -76,7 +54,7 @@ func main() {
 
 	prefixedRegionID := regionID
 	datafilesCollection := "datafiles"
-	if !noTest {
+	if !prod {
 		prefixedRegionID += "Test"
 		datafilesCollection += "Test"
 	}
@@ -112,7 +90,7 @@ func main() {
 		LastUploadedTime: readers.CurrentTime(),
 		GeneratedAt:      meta.GeneratedAt,
 		UploadedAt:       readers.CurrentTime(),
-		IsTestVersion:    !noTest,
+		IsTestVersion:    !prod,
 		Position:         position,
 		RegionID:         regionID,
 		RegionName:       meta.RegionName,
