@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -11,23 +10,12 @@ import (
 	"strings"
 )
 
-var (
-	regionID string
-	verbose  bool
-)
-
 func init() {
 	log.SetFlags(0)
-	flag.StringVar(&regionID, "region-id", "", "region which datafile should be compressed")
-	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
-	flag.Parse()
-
-	if regionID == "" {
-		log.Fatalln("compress: error: regionID is empty")
-	}
+	log.SetPrefix("compress: ")
 }
 
-func main() {
+func Compress(regionID string, verbose bool) {
 	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {
 		err = os.Mkdir("compressed", 0755)
