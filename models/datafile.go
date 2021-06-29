@@ -1,4 +1,4 @@
-package internal
+package models
 
 // Datafile represents structure of data.json file.
 type Datafile struct {

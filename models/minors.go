@@ -1,4 +1,4 @@
-package internal
+package models
 
 // Action usually represents a URL with a name.
 type Action struct {

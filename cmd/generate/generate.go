@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bartekpacia/database-tools/internal"
+	"github.com/bartekpacia/database-tools/models"
 	"github.com/bartekpacia/database-tools/readers"
 )
 
@@ -34,7 +34,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	var datafile internal.Datafile
+	var datafile models.Datafile
 
 	if regionID == "" {
 		log.Fatalln("generate: regionID is empty")

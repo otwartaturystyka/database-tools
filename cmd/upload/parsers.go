@@ -5,20 +5,20 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/internal"
+	"github.com/bartekpacia/database-tools/models"
 	"github.com/bbrks/go-blurhash"
 	"golang.org/x/image/webp"
 )
 
 // ParseMeta parses metadata for the generated datafile of ID regionID.
-func parseMeta(regionID string, lang string) (*internal.Meta, error) {
+func parseMeta(regionID string, lang string) (*models.Meta, error) {
 	datafilePath := filepath.Join("generated", regionID)
 
 	if err := os.Chdir(datafilePath); err != nil {
 		return nil, fmt.Errorf("chdir into generated datafile's dir at %s: %w", datafilePath, err)
 	}
 
-	var meta internal.Meta
+	var meta models.Meta
 	err := meta.ParseFromGenerated()
 	if err != nil {
 		return nil, fmt.Errorf("parse meta from generated datafile's data.json at %s: %w", datafilePath, err)
