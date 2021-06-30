@@ -7,9 +7,6 @@ UPLOAD := ./cmd/upload
 all: cmd/main.go
 	$(GC) build -o touristdb cmd/main.go
 
-generate: $(GENERATE)/generate.go $(GENERATE)/parsers.go
-	go build $(GENERATE)/generate.go $(GENERATE)/parsers.go
-
 notify: $(NOTIFY)/notify.go
 	go build $(NOTIFY)/notify.go
 

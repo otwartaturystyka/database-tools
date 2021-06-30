@@ -6,12 +6,61 @@ import (
 	"os"
 
 	"github.com/bartekpacia/database-tools/cmd/compress"
+	"github.com/bartekpacia/database-tools/cmd/generate"
 	"github.com/bartekpacia/database-tools/cmd/upload"
+	"github.com/bartekpacia/database-tools/models"
 	"github.com/urfave/cli/v2"
 )
 
 func init() {
 	log.SetFlags(0)
+}
+
+var generateCommand = cli.Command{
+	Name:  "generate",
+	Usage: "gather region's data and put them into a generated directory",
+	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
+		log.Println("error:", err)
+		return nil
+	},
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "region-id",
+			Aliases: []string{"id"},
+			Value:   "",
+			Usage:   "region whose data directory will be generated",
+		},
+		&cli.StringFlag{
+			Name:  "lang",
+			Value: "pl",
+			Usage: "language of the generated directory",
+		},
+		&cli.IntFlag{
+			Name:    "quality",
+			Aliases: []string{"q"},
+			Value:   models.Compressed,
+			Usage:   "quality of photos in the datafile (1 - compressed, 2 - original)",
+		},
+		&cli.BoolFlag{
+			Name:    "verbose",
+			Aliases: []string{"v"},
+			Value:   false,
+			Usage:   "print extensive logs",
+		},
+	},
+	Action: func(c *cli.Context) error {
+		regionID := c.String("region-id")
+		lang := c.String("lang")
+		quality := models.Quality(c.Int("quality"))
+		verbose := c.Bool("verbose")
+
+		if regionID == "" {
+			return errors.New("region-id is empty")
+		}
+
+		err := generate.Generate(regionID, lang, quality, verbose)
+		return err
+	},
 }
 
 var compressCommand = cli.Command{
@@ -110,6 +159,7 @@ func main() {
 			return nil
 		},
 		Commands: []*cli.Command{
+			&generateCommand,
 			&compressCommand,
 			&uploadCommand,
 		},

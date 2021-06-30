@@ -1,9 +1,8 @@
-package main
+package generate
 
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -16,24 +15,11 @@ import (
 	"github.com/bartekpacia/database-tools/readers"
 )
 
-var (
-	regionID string
-	lang     string
-	quality  int
-	verbose  bool
-)
-
 func init() {
 	log.SetFlags(0)
-	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
-	flag.StringVar(&lang, "lang", "pl", "language of text in the datafile")
-	flag.IntVar(&quality, "quality", 1, "quality of photos in the datafile (1 - compressed, 2 - original")
-	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 }
 
-func main() {
-	flag.Parse()
-
+func Generate(regionID string, lang string, quality models.Quality, verbose bool) error {
 	var datafile models.Datafile
 
 	if regionID == "" {
@@ -107,7 +93,7 @@ func main() {
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
-					err = makeMiniIcon(imagePath)
+					err = makeMiniIcon(regionID, imagePath)
 					if err != nil {
 						log.Fatalf("generate: failed to make mini icon at %s: %v\n", imagePath, err)
 					}
@@ -129,9 +115,11 @@ func main() {
 			}
 		}
 	}
+
+	return nil
 }
 
-func makeMiniIcon(srcPath string) error {
+func makeMiniIcon(regionID string, srcPath string) error {
 	wd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("get working dir: %w", err)
