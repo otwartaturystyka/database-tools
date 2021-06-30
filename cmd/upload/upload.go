@@ -3,6 +3,7 @@ package upload
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -30,26 +31,27 @@ var (
 
 func init() {
 	log.SetFlags(0)
+	log.SetPrefix("upload: ")
 
 	opt := option.WithCredentialsFile("./key.json")
 
 	var err error
 	firestoreClient, err = firestore.NewClient(context.Background(), "discoverrudy", opt)
 	if err != nil {
-		log.Fatalf("upload: error initializing firestore: %v\n", err)
+		log.Fatalln("failed to initialize firestore:", err)
 	}
 
 	storageClient, err = storage.NewClient(context.Background(), opt)
 	if err != nil {
-		log.Fatalf("upload: error initializing storage: %v\n", err)
+		log.Fatalln("failed to initialize storage:", err)
 	}
 }
 
-func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool) {
+func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool) error {
 	zipFilePath := "compressed/" + regionID + ".zip"
 	zipFileInfo, err := os.Stat(zipFilePath)
-	if os.IsNotExist(err) {
-		log.Fatalf("upload: datafile archive %s doesn't exist\n", zipFilePath)
+	if errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("datafile archive %s doesn't exist", zipFilePath)
 	}
 
 	prefixedRegionID := regionID
@@ -64,22 +66,20 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 	thumbLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb.webp") + "?alt=media"
 	thumbMiniLocation := appspotURL + url.QueryEscape("/"+prefixedRegionID+"/thumb_mini.webp") + "?alt=media"
 
-	fmt.Println("upload: fileLocation:", fileLocation)
-	fmt.Println("upload: thumbLocation:", thumbLocation)
-	fmt.Println("upload: thumbMiniLocation:", thumbMiniLocation)
+	log.Println("fileLocation:", fileLocation)
+	log.Println("thumbLocation:", thumbLocation)
+	log.Println("thumbMiniLocation:", thumbMiniLocation)
 
-	fmt.Printf("upload: making thumb blurhash...")
+	log.Println("making thumb blurhash...")
 	thumbBlurhash, err := makeThumbBlurhash(regionID)
 	if err != nil {
-		log.Fatalf("\nupload: error making a blurhash: %v\n", err)
+		return fmt.Errorf("make blurhash: %v", err)
 	}
-	fmt.Println("ok")
 
-	fmt.Println("upload: you are going to upload a data pack with the following metadata")
-
+	fmt.Println("you are going to upload a data pack with the following metadata")
 	meta, err := parseMeta(regionID, lang)
 	if err != nil {
-		log.Fatalln("upload: error parsing meta:", err)
+		return fmt.Errorf("parse meta: %v", err)
 	}
 
 	datafileData := FirestoreDatafile{
@@ -101,18 +101,18 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
 	if err != nil {
-		log.Fatalln("upload: failed to marshal datafileData to JSON:", err)
+		return fmt.Errorf("marshal datafileData to JSON: %v", err)
 	}
 	fmt.Println(string(datafileDataJSON))
 
 	accepted, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "upload: continue?", false)
 	if err != nil {
-		log.Fatalf("\nupload: failed to ask for confirmation: %v\n", err)
+		return fmt.Errorf("ask for confirmation: %v", err)
 	}
 
 	if !accepted {
-		fmt.Println("upload: operation canceled by the user")
-		os.Exit(0)
+		log.Println("operation canceled by the user")
+		return nil
 	}
 
 	// Upload compressed datafile
@@ -139,21 +139,22 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 	}()
 
 	docRef := firestoreClient.Collection(datafilesCollection).Doc(regionID)
-	fmt.Printf("upload: updating document at %s...", docRef.Path)
+	log.Printf("updating document at %s...\n", docRef.Path)
 	_, err = docRef.Set(context.Background(), datafileData)
 	if err != nil {
-		log.Fatalf("\nerror updating document %#v in /datafiles: %v\n", regionID, err)
+		return fmt.Errorf("error updating document %#v in /datafiles: %v", regionID, err)
 	}
-	fmt.Println("ok")
+
+	return nil
 }
 
 // Upload uploads file at localPath (relative) to Cloud Storage at cloudPath (absolute).
-func upload(localPath string, cloudPath string, contentType string) {
+func upload(localPath string, cloudPath string, contentType string) error {
 	ctx := context.TODO()
 
 	compressedDatafile, err := os.Open(localPath)
 	if err != nil {
-		log.Fatalf("\nupload: error opening compressed datafile: %v\n", err)
+		return fmt.Errorf("open compressed datafile: %v", err)
 	}
 	defer compressedDatafile.Close()
 
@@ -162,16 +163,17 @@ func upload(localPath string, cloudPath string, contentType string) {
 	w.ContentType = contentType
 	w.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 
-	fmt.Printf("upload: uploading to %s...", cloudPath)
+	fmt.Printf("uploading to %s...\n", cloudPath)
+
 	_, err = io.Copy(w, compressedDatafile)
 	if err != nil {
-		log.Fatalf("\nupload: error copying compressedDatafile to writer: %v\n", err)
+		return fmt.Errorf("copy compressedDatafile to writer: %v", err)
 	}
 
 	err = w.Close()
 	if err != nil {
-		log.Fatalf("\nupload: error closing storage writer: %v\n", err)
+		return fmt.Errorf("close storage writer: %v", err)
 	}
 
-	fmt.Println("ok")
+	return nil
 }

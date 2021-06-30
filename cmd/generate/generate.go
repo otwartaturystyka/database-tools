@@ -1,3 +1,5 @@
+// Package generate implements the process of generating a directory
+// from data available in the database.
 package generate
 
 import (
@@ -19,83 +21,82 @@ func init() {
 	log.SetFlags(0)
 }
 
+// Generate walks the database and copies files from it to the generated directory.
 func Generate(regionID string, lang string, quality models.Quality, verbose bool) error {
 	var datafile models.Datafile
 
 	if regionID == "" {
-		log.Fatalln("generate: regionID is empty")
+		return fmt.Errorf("regionID is empty")
 	}
 
 	if quality != 1 && quality != 2 {
-		log.Fatalln("generate: quality is not 1 or 2")
+		return fmt.Errorf("quality is not 1 or 2")
 	}
 
 	err := os.Chdir("database/" + regionID)
 	if err != nil {
-		log.Fatalln("generate:", err)
+		return fmt.Errorf("chdir into database directory: %v", err)
 	}
 
 	meta, err := parseMeta(lang)
 	if err != nil {
-		log.Fatalln(errors.Unwrap(err))
+		return fmt.Errorf("parse meta: %v", err)
 	}
 	datafile.Meta = meta
 	datafile.Meta.GeneratedAt = readers.CurrentTime() // Important!
 
 	sections, err := parseSections(lang)
 	if err != nil {
-		log.Fatalf("generate: failed to parse sections: %v\n", err)
+		return fmt.Errorf("parse sections: %v", err)
 	}
 	datafile.Sections = sections
 
 	tracks, err := parseTracks(lang)
 	if err != nil {
-		log.Fatalf("generate: failed to parse tracks: %v\n", err)
+		return fmt.Errorf("parse tracks: %v", err)
 	}
 	datafile.Tracks = tracks
 
 	stories, err := parseStories(lang)
 	if err != nil {
-		log.Fatalf("generate: parseStories(): %v\n", err)
+		return fmt.Errorf("parse stories: %v", err)
 	}
 	datafile.Stories = stories
 
 	os.Chdir("../..")
 
-	fmt.Printf("generate: creating output dir...")
+	log.Println("creating output dir...")
 	dataJSONFile, err := createOutputDir(regionID)
 	if err != nil {
-		log.Fatalf("\ngenerate: failed to create output dir: %v\n", err)
+		return fmt.Errorf("create output directory: %v", err)
 	}
-	fmt.Println("ok")
 
-	fmt.Printf("generate: marshalling datafile to JSON...")
+	log.Println("marshalling datafile to JSON...")
 	data, err := json.MarshalIndent(datafile, "", "	")
 	if err != nil {
-		log.Fatalf("\ngenerate: failed to marshal datafile to JSON: %v\n", err)
+		return fmt.Errorf("marshal datafile struct to JSON: %v", err)
 	}
-	fmt.Println("ok")
 
-	fmt.Printf("generate: writing datafile json to a file...")
+	log.Println("writing datafile json to a file...")
 	n, err := dataJSONFile.Write(data)
 	if err != nil {
-		log.Fatalf("\ngenerate: failed to write data to the JSON file: %v\n", err)
+		return fmt.Errorf("write data to JSON file: %v", err)
 	}
-	fmt.Println("ok")
-	fmt.Printf("generate: wrote %d KB to data.json file\n", n/1024)
+
+	log.Printf("wrote %d KB to data.json file\n", n/1024)
 
 	for _, section := range sections {
 		for _, place := range section.Places {
 			for _, imagePath := range place.ImagePaths() {
 				_, err = copyImage(regionID, imagePath)
 				if err != nil {
-					log.Fatalf("generate: failed to copy image: %v\n", err)
+					return fmt.Errorf("copy image: %v", err)
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
 					err = makeMiniIcon(regionID, imagePath)
 					if err != nil {
-						log.Fatalf("generate: failed to make mini icon at %s: %v\n", imagePath, err)
+						return fmt.Errorf("make mini icon at %s: %v", imagePath, err)
 					}
 				}
 			}
@@ -105,13 +106,13 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 	for _, story := range stories {
 		_, err := copyMarkdown(regionID, story.MarkdownPath())
 		if err != nil {
-			log.Fatalf("generate: failed to copy markdown file for story %s: %v\n", story.ID, err)
+			return fmt.Errorf("copy markdown file for story %s: %v", story.ID, err)
 		}
 
 		for _, path := range story.ImagePaths() {
 			_, err := copyImage(regionID, path)
 			if err != nil {
-				log.Fatalf("generate: failed to copy image for story %s: %v\n", story.ID, err)
+				return fmt.Errorf("copy image for story %s: %v", story.ID, err)
 			}
 		}
 	}
@@ -179,7 +180,7 @@ func createOutputDir(regionID string) (*os.File, error) {
 	_, err := os.Stat(generatedPath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			err = os.Mkdir(generatedPath, 0755)
+			err = os.Mkdir(generatedPath, 0o755)
 			if err != nil {
 				return nil, fmt.Errorf("dir %#v does not exist and cannot be created: %w", generatedPath, err)
 			}
@@ -193,19 +194,19 @@ func createOutputDir(regionID string) (*os.File, error) {
 		return nil, fmt.Errorf("remove output dir %#v: %w", outputDirPath, err)
 	}
 
-	err = os.Mkdir(outputDirPath, 0755)
+	err = os.Mkdir(outputDirPath, 0o755)
 	if err != nil {
 		return nil, fmt.Errorf("make output dir %#v: %w", outputDirPath, err)
 	}
 
 	imagesDirPath := filepath.Join(outputDirPath, "images")
-	err = os.Mkdir(imagesDirPath, 0755)
+	err = os.Mkdir(imagesDirPath, 0o755)
 	if err != nil {
 		return nil, fmt.Errorf("make dir %#v (for images): %w", imagesDirPath, err)
 	}
 
 	storiesDirPath := filepath.Join(outputDirPath, "stories")
-	err = os.Mkdir(storiesDirPath, 0755)
+	err = os.Mkdir(storiesDirPath, 0o755)
 	if err != nil {
 		return nil, fmt.Errorf("make dir %#v (for stories): %w", storiesDirPath, err)
 	}

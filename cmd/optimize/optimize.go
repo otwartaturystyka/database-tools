@@ -15,9 +15,7 @@ import (
 	"github.com/jdeng/goheif"
 )
 
-var (
-	noIcons bool
-)
+var noIcons bool
 
 func init() {
 	log.SetFlags(0)

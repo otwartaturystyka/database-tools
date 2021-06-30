@@ -25,9 +25,7 @@ var (
 	verbose bool
 )
 
-var (
-	messagingClient *messaging.Client
-)
+var messagingClient *messaging.Client
 
 func init() {
 	log.SetFlags(0)

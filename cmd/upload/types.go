@@ -1,8 +1,10 @@
+// Package upload implements functionality related to uploading
+// region's zip archive to the cloud.
 package upload
 
 import "time"
 
-// FirestoreDatafile represents a document in /datafiles collection in Firestore.
+// FirestoreDatafile represents a document in datafiles collection in Firestore.
 type FirestoreDatafile struct {
 	Available        bool      `json:"available" firestore:"available"`
 	Featured         []string  `json:"featured" firestore:"featured"`

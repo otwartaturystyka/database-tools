@@ -1,46 +1,45 @@
+// Package compress handles compressing the generated datafile directory.
 package compress
 
 import (
 	"archive/zip"
+	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-func init() {
-	log.SetFlags(0)
-	log.SetPrefix("compress: ")
-}
-
-// TODO:
-// - improve error handling
+// Compress takes a generated directory of region's datafile and creates a zip archive out of it.
 func Compress(regionID string, verbose bool) error {
 	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {
 		err = os.Mkdir("compressed", 0755)
 		if err != nil {
-			return fmt.Errorf("compress: error creating compressed directory: %v", err)
+			return fmt.Errorf("failed to create compressed directory: %v", err)
 		}
 	}
 
-	zipFile, err := os.Create(filepath.Join("compressed", regionID+".zip"))
+	zipFilePath := filepath.Join("compressed", regionID+".zip")
+	zipFile, err := os.Create(zipFilePath)
 	if err != nil {
-		return fmt.Errorf("compress: failed to create zip file: %v", err)
+		return fmt.Errorf("failed to create zip file: %v", err)
 	}
 	defer zipFile.Close()
 
 	sourceDatafilePath := filepath.Join("generated", regionID)
 
 	info, err := os.Stat(sourceDatafilePath)
-	if os.IsNotExist(err) {
-		log.Fatalf("compress: datafile in \"generated\" directory for %s doesn't exist", regionID)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("compress: datafile in \"generated\" directory for %s doesn't exist", regionID)
+		}
+		return err
 	}
 
 	if !info.IsDir() {
-		log.Fatalf("compress: error: datafile %s is not a directory\n", regionID)
+		return fmt.Errorf("%s is not a directory", sourceDatafilePath)
 	}
 
 	zipWriter := zip.NewWriter(zipFile)
@@ -70,16 +69,16 @@ func Compress(regionID string, verbose bool) error {
 		components := strings.SplitAfterN(path, "/", 2)
 		writer, err := zipWriter.Create(components[1])
 		if err != nil {
-			log.Fatalf("compress: error creating a file in zip archive: %v\n", err)
+			return fmt.Errorf("create a file in zip archive: %v", err)
 		}
 
 		if verbose {
-			fmt.Printf("compress: compressing file %d at %s\n", i, path)
+			fmt.Printf("compressing file %d at %s\n", i, path)
 		}
 
 		_, err = io.Copy(writer, file)
 		if err != nil {
-			log.Fatalf("compress: error copying file: %v\n", err)
+			return fmt.Errorf("copy %s: %v", path, err)
 		}
 
 		i++
@@ -88,10 +87,10 @@ func Compress(regionID string, verbose bool) error {
 
 	err = filepath.Walk(sourceDatafilePath, walker)
 	if err != nil {
-		log.Fatalf("compress: error while walking %s: %v\n", regionID, err)
+		return fmt.Errorf("walk %s: %v", sourceDatafilePath, err)
 	}
 
-	fmt.Println("compress: successfully compressed datafile", regionID)
+	fmt.Println("successfully compressed datafile", regionID)
 
 	return nil
 }
