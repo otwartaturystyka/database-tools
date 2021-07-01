@@ -15,7 +15,7 @@ import (
 func Compress(regionID string, verbose bool) error {
 	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {
-		err = os.Mkdir("compressed", 0755)
+		err = os.Mkdir("compressed", 0o755)
 		if err != nil {
 			return fmt.Errorf("failed to create compressed directory: %v", err)
 		}
@@ -33,7 +33,7 @@ func Compress(regionID string, verbose bool) error {
 	info, err := os.Stat(sourceDatafilePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("compress: datafile in \"generated\" directory for %s doesn't exist", regionID)
+			return fmt.Errorf("compress: datafile in the 'generated' directory for %s doesn't exist", regionID)
 		}
 		return err
 	}

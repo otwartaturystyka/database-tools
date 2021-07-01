@@ -1,3 +1,5 @@
+// Package upload implements functionality related to uploading
+// region's zip archive to the cloud.
 package upload
 
 import (
@@ -32,19 +34,23 @@ var (
 func init() {
 	log.SetFlags(0)
 	log.SetPrefix("upload: ")
+}
 
+func InitFirebase() error {
 	opt := option.WithCredentialsFile("./key.json")
 
 	var err error
 	firestoreClient, err = firestore.NewClient(context.Background(), "discoverrudy", opt)
 	if err != nil {
-		log.Fatalln("failed to initialize firestore:", err)
+		return fmt.Errorf("initialize firestore: %v", err)
 	}
 
 	storageClient, err = storage.NewClient(context.Background(), opt)
 	if err != nil {
-		log.Fatalln("failed to initialize storage:", err)
+		return fmt.Errorf("initialize storage: %v", err)
 	}
+
+	return nil
 }
 
 func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool) error {

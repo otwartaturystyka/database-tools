@@ -2,15 +2,20 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/bartekpacia/database-tools/cmd/compress"
 	"github.com/bartekpacia/database-tools/cmd/generate"
+	"github.com/bartekpacia/database-tools/cmd/optimize"
 	"github.com/bartekpacia/database-tools/cmd/upload"
 	"github.com/bartekpacia/database-tools/models"
 	"github.com/urfave/cli/v2"
 )
+
+var ErrInvalidRegionID = errors.New("invalid region id")
 
 func init() {
 	log.SetFlags(0)
@@ -18,7 +23,7 @@ func init() {
 
 var generateCommand = cli.Command{
 	Name:  "generate",
-	Usage: "gather region's data and put them into a generated directory",
+	Usage: "gather region's data and into a generated directory",
 	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
 		log.Println("error:", err)
 		return nil
@@ -55,7 +60,7 @@ var generateCommand = cli.Command{
 		verbose := c.Bool("verbose")
 
 		if regionID == "" {
-			return errors.New("region-id is empty")
+			return ErrInvalidRegionID
 		}
 
 		err := generate.Generate(regionID, lang, quality, verbose)
@@ -89,7 +94,7 @@ var compressCommand = cli.Command{
 		verbose := c.Bool("verbose")
 
 		if regionID == "" {
-			return errors.New("region-id is empty")
+			return ErrInvalidRegionID
 		}
 
 		compress.Compress(regionID, verbose)
@@ -142,10 +147,59 @@ var uploadCommand = cli.Command{
 		prod := c.Bool("prod")
 
 		if regionID == "" {
-			return errors.New("region-id is empty")
+			return ErrInvalidRegionID
 		}
 
-		upload.Upload(regionID, lang, position, onlyMeta, prod)
+		err := upload.InitFirebase()
+		if err != nil {
+			return fmt.Errorf("init firebase: %v", err)
+		}
+
+		err = upload.Upload(regionID, lang, position, onlyMeta, prod)
+		if err != nil {
+			return fmt.Errorf("upload %s: %v", regionID, err)
+		}
+
+		return nil
+	},
+}
+
+var optimizeCommand = cli.Command{
+	Name:  "optimize",
+	Usage: "generate optimized images for a particular place. It must be run in a place directory.",
+	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
+		log.Println("error:", err)
+		return nil
+	},
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:  "no-icons",
+			Value: false,
+			Usage: "don't optimize icons",
+		},
+		&cli.BoolFlag{
+			Name:    "verbose",
+			Aliases: []string{"-v"},
+			Value:   false,
+			Usage:   "print extensive logs",
+		},
+	},
+	Action: func(c *cli.Context) error {
+		noIcons := c.Bool("no-icons")
+		verbose := c.Bool("verbose")
+
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("get current working directory: %v", err)
+		}
+
+		placeID := filepath.Base(currentDir)
+
+		err = optimize.Optimize(placeID, noIcons, verbose)
+		if err != nil {
+			return fmt.Errorf("%s: %v", placeID, err)
+		}
+
 		return nil
 	},
 }
@@ -162,6 +216,7 @@ func main() {
 			&generateCommand,
 			&compressCommand,
 			&uploadCommand,
+			&optimizeCommand,
 		},
 		CommandNotFound: func(c *cli.Context, command string) {
 			log.Printf("invalid command '%s'. See 'touristdb --help'\n", command)
@@ -170,6 +225,6 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("failed to run cli app: ", err)
 	}
 }

@@ -1,12 +1,11 @@
-package main
+// Package optimize implements a simple image optimization functionality.
+package optimize
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"image"
 	_ "image/jpeg"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,49 +14,40 @@ import (
 	"github.com/jdeng/goheif"
 )
 
-var noIcons bool
-
-func init() {
-	log.SetFlags(0)
-	flag.BoolVar(&noIcons, "no-icons", false, "don't optimize icons")
-}
-
-func main() {
-	flag.Parse()
-	currentDir, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("optimize: failed to get current working directory")
-	}
-	placeID := filepath.Base(currentDir)
-
+// Optimize creates optimized versions of images from images in the place's "original" directory.
+// placePath must point to a valid place.
+func Optimize(placeID string, noIcons bool, verbose bool) error {
 	// Make srcPath - either .jpg or .heic
 	originalIconPath := fmt.Sprintf("images/original/ic_%s.jpg", placeID)
-	_, err = os.Stat(originalIconPath)
+	_, err := os.Stat(originalIconPath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			originalIconPath = fmt.Sprintf("images/original/ic_%s.heic", placeID)
 		} else {
-			log.Fatalf("optimize %s: failed to stat %s: %v\n:", placeID, originalIconPath, err)
+			return fmt.Errorf("stat %s: %v", originalIconPath, err)
 		}
 	}
 
-	err = verifyValidDirectoryStructure(placeID, originalIconPath)
+	err = verifyValidDirectoryStructure(placeID, originalIconPath, noIcons)
 	if err != nil {
-		log.Fatalf("optimize %s: no valid directory structure: %v\n", placeID, err)
+		return fmt.Errorf("no valid directory structure: %v", err)
 	}
 
 	if !noIcons {
 		compressedIconPath := fmt.Sprintf("images/compressed/ic_%s.webp", placeID)
 		err = makeIcon(originalIconPath, compressedIconPath)
 		if err != nil {
-			log.Fatalf("optimize %s: failed to create optimized icon: %v\n", placeID, err)
+			return fmt.Errorf("make optimized icon: %v", err)
 		}
-		fmt.Printf("optimize %s: created optimized icon\n", placeID)
+
+		if verbose {
+			fmt.Printf("optimize %s: created optimized icon\n", placeID)
+		}
 	}
 
 	dirEntries, err := os.ReadDir("images/original")
 	if err != nil {
-		log.Fatalf("optimize %s: failed to read images/original/ dir: %v\n", placeID, err)
+		return fmt.Errorf("read images/original/ directory: %v", err)
 	}
 
 	for _, dirEntry := range dirEntries {
@@ -76,10 +66,10 @@ func main() {
 		srcPath := fmt.Sprintf("images/original/%s.jpg", name)
 		_, err := os.Stat(srcPath)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if errors.Is(err, os.ErrNotExist) {
 				srcPath = fmt.Sprintf("images/original/%s.heic", name)
 			} else {
-				log.Fatalf("optimize %s: failed to stat %s: %v\n:", placeID, srcPath, err)
+				return fmt.Errorf("stat %s: %v", srcPath, err)
 			}
 		}
 
@@ -87,14 +77,19 @@ func main() {
 
 		err = makeImage(srcPath, dstPath)
 		if err != nil {
-			log.Fatalf("optimize %s: failed to create optimized image %s: %v\n", placeID, name, err)
+			return fmt.Errorf("create optimized image %s: %v", name, err)
 		}
-		fmt.Printf("optimize %s: created optimized image %s\n", placeID, name)
+
+		if verbose {
+			fmt.Printf("created optimized image %s\n", name)
+		}
 	}
+
+	return nil
 }
 
-func verifyValidDirectoryStructure(placeID string, originalIconPath string) error {
-	// Does the images/ directory even exist?
+func verifyValidDirectoryStructure(placeID string, originalIconPath string, noIcons bool) error {
+	// Check if images/ directory exists
 	_, err := os.Stat("images")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -104,7 +99,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 		}
 	}
 
-	// Does images/original/ directory exist?
+	// Check if images/original/ directory exists
 	_, err = os.Stat("images/original")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -115,7 +110,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 	}
 
 	if !noIcons {
-		// Does images/original/ have a JPG icon?
+		// Check if images/original/ directory has a JPG icon.
 		_, err = os.Stat(originalIconPath)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
@@ -125,8 +120,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 			}
 		}
 
-		// Is that JPG icon 1024x1024?
-		// TODO
+		// TODO: check if that JPG icon is 1024x1024
 		w, h, err := getImageDimensions(originalIconPath)
 		if err != nil {
 			return fmt.Errorf("get image dimensions: %w", err)
@@ -140,8 +134,8 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 	// Does images/compressed/ directory exist?
 	_, err = os.Stat("images/compressed")
 	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir("images/compressed", 0755)
+		if errors.Is(err, os.ErrNotExist) {
+			err = os.Mkdir("images/compressed", 0o755)
 			if err != nil {
 				return errors.New("create images/compressed/ dir")
 			}
@@ -154,7 +148,7 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string) erro
 	return nil
 }
 
-/// MakeIcons creates a 512x512 WEBP version of a standard 1024x1024 JPG icon.
+// MakeIcons creates a compressed 512x512 WEBP version of an original 1024x1024 JPG or HEIC icon.
 func makeIcon(srcPath string, dstPath string) error {
 	cmd := exec.Command("magick", srcPath, "-resize", "512x512", dstPath)
 	err := cmd.Run()
@@ -165,7 +159,8 @@ func makeIcon(srcPath string, dstPath string) error {
 	return nil
 }
 
-// magick lesny_przystanek_1.heic -resize 50% -quality 75 lesny_przystanek_1.webp
+// MakeImage creates a compressed WEBP version of an original JPEG or HEIC image.
+// The compressed image has 4 times smaller resolution and also has decreased quality.
 func makeImage(srcPath string, dstPath string) error {
 	cmd := exec.Command("magick", srcPath, "-resize", "25%", "-quality", "75", dstPath)
 	err := cmd.Run()

@@ -1,5 +1,3 @@
-// Package upload implements functionality related to uploading
-// region's zip archive to the cloud.
 package upload
 
 import "time"
