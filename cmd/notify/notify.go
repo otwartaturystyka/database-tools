@@ -1,8 +1,11 @@
-package main
+// Package notify implements sending push notifications
+// to the mobile app.
+package notify
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -15,45 +18,44 @@ import (
 )
 
 var (
-	regionID string
-
 	title string
 	body  string
 	topic string
 	token string
-
-	verbose bool
 )
 
 var messagingClient *messaging.Client
 
 func init() {
 	log.SetFlags(0)
-	flag.StringVar(&regionID, "region-id", "", "region which datafile should be uploaded")
+}
+
+func InitFirebase() error {
 	flag.StringVar(&title, "title", "", "message title")
 	flag.StringVar(&body, "body", "", "message body")
 	flag.StringVar(&topic, "topic", "", "topic to send message to")
 	flag.StringVar(&token, "token", "", "token of individual device to send message to")
-	flag.BoolVar(&verbose, "verbose", false, "print extensive logs")
 
 	opt := option.WithCredentialsFile("./key.json")
 
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		log.Fatalf("notify: failed to initialize firebase app: %v\n", err)
+		return fmt.Errorf("initialize firebase app: %v", err)
 	}
 
 	messagingClient, err = app.Messaging(context.Background())
 	if err != nil {
-		log.Fatalf("notify: failed to initialize messaging: %v\n", err)
+		return fmt.Errorf("notify: failed to initialize messaging: %v", err)
 	}
+
+	return nil
 }
 
-func main() {
-	flag.Parse()
-
+// Notify sends a push notification to users of the app who have
+// regionID set as their default region.
+func Notify(regionID string, verbose bool) error {
 	if regionID == "" {
-		log.Fatalln("notify: regionID is empty")
+		return fmt.Errorf("regionID is empty")
 	}
 
 	data := make(map[string]string)
@@ -70,27 +72,27 @@ func main() {
 		Topic: topic,
 	}
 
-	b, err := json.MarshalIndent(msg, "", "  ")
+	msgJSON, err := json.MarshalIndent(msg, "", "  ")
 	if err != nil {
-		log.Fatalln("notify: failed to marshal message to JSON:", err)
+		return fmt.Errorf("marshal message to JSON: %v", err)
 	}
-	fmt.Println("notify: message to be sent:")
-	fmt.Println(string(b))
+	fmt.Println("message to be sent:", msgJSON)
 
-	confirmed, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "notify: send the message?", false)
+	confirmed, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "send the message?", false)
 	if err != nil {
-		log.Fatalf("\nupload: failed to ask for confirmation: %v\n", err)
+		return fmt.Errorf("ask for confirmation: %v", err)
 	}
 
 	if !confirmed {
-		fmt.Println("notify: sending message canceled by the user")
-		os.Exit(0)
+		return errors.New("canceled")
 	}
 
 	messagingResponse, err := messagingClient.Send(context.Background(), &msg)
 	if err != nil {
-		log.Fatalf("notify: failed to send message: %v\n", err)
+		return fmt.Errorf("send message: %v", err)
 	}
 
-	fmt.Println("notify: message sent, messagingResponse: ", messagingResponse)
+	fmt.Println("message sent, messagingResponse: ", messagingResponse)
+
+	return nil
 }
