@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/firestore v1.5.0
 	cloud.google.com/go/storage v1.16.0
 	firebase.google.com/go/v4 v4.6.0
+	github.com/adrium/goheif v0.0.0-20210309200126-b184a7b446fa
 	github.com/bbrks/go-blurhash v1.1.1
 	github.com/jdeng/goheif v0.0.0-20200323230657-a0d6a8b3e68f
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect

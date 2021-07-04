@@ -33,7 +33,6 @@ var (
 
 func init() {
 	log.SetFlags(0)
-	log.SetPrefix("upload: ")
 }
 
 func InitFirebase() error {

@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"image"
 	_ "image/jpeg"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/jdeng/goheif"
+	"github.com/adrium/goheif"
 )
 
 // Optimize creates optimized versions of images from images in the place's "original" directory.
@@ -28,7 +29,7 @@ func Optimize(placeID string, noIcons bool, verbose bool) error {
 		}
 	}
 
-	err = verifyValidDirectoryStructure(placeID, originalIconPath, noIcons)
+	err = verifyValidDirectoryStructure(placeID, originalIconPath, noIcons, verbose)
 	if err != nil {
 		return fmt.Errorf("no valid directory structure: %v", err)
 	}
@@ -41,7 +42,7 @@ func Optimize(placeID string, noIcons bool, verbose bool) error {
 		}
 
 		if verbose {
-			fmt.Printf("optimize %s: created optimized icon\n", placeID)
+			log.Printf("optimize %s: created optimized icon\n", placeID)
 		}
 	}
 
@@ -81,14 +82,19 @@ func Optimize(placeID string, noIcons bool, verbose bool) error {
 		}
 
 		if verbose {
-			fmt.Printf("created optimized image %s\n", name)
+			log.Println("created optimized image", name)
 		}
 	}
 
 	return nil
 }
 
-func verifyValidDirectoryStructure(placeID string, originalIconPath string, noIcons bool) error {
+func verifyValidDirectoryStructure(
+	placeID string,
+	originalIconPath string,
+	noIcons bool,
+	verbose bool,
+) error {
 	// Check if images/ directory exists
 	_, err := os.Stat("images")
 	if err != nil {
@@ -139,7 +145,10 @@ func verifyValidDirectoryStructure(placeID string, originalIconPath string, noIc
 			if err != nil {
 				return errors.New("create images/compressed/ dir")
 			}
-			fmt.Printf("optimize %s: images/compressed/ dir was created\n", placeID)
+
+			if verbose {
+				fmt.Printf("optimize %s: images/compressed/ dir was created\n", placeID)
+			}
 		} else {
 			return fmt.Errorf("stat images/compressed/ dir: %w", err)
 		}

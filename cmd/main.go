@@ -24,10 +24,6 @@ func init() {
 var generateCommand = cli.Command{
 	Name:  "generate",
 	Usage: "gather region's data and into a generated directory",
-	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-		log.Println("error:", err)
-		return nil
-	},
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "region-id",
@@ -71,10 +67,7 @@ var generateCommand = cli.Command{
 var compressCommand = cli.Command{
 	Name:  "compress",
 	Usage: "make a zip archive from a generated region directory",
-	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-		log.Println("error:", err)
-		return nil
-	},
+
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "region-id",
@@ -106,10 +99,7 @@ var compressCommand = cli.Command{
 var uploadCommand = cli.Command{
 	Name:  "upload",
 	Usage: "upload a zip archive to the server",
-	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-		log.Println("error:", err)
-		return nil
-	},
+
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "region-id",
@@ -166,11 +156,7 @@ var uploadCommand = cli.Command{
 
 var optimizeCommand = cli.Command{
 	Name:  "optimize",
-	Usage: "generate optimized images for a particular place. It must be run in a place directory.",
-	OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-		log.Println("error:", err)
-		return nil
-	},
+	Usage: "generate optimized images for a particular place",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "no-icons",
@@ -179,7 +165,7 @@ var optimizeCommand = cli.Command{
 		},
 		&cli.BoolFlag{
 			Name:    "verbose",
-			Aliases: []string{"-v"},
+			Aliases: []string{"v"},
 			Value:   false,
 			Usage:   "print extensive logs",
 		},
@@ -208,10 +194,6 @@ func main() {
 	app := &cli.App{
 		Name:  "touristdb",
 		Usage: "manage the tourist database",
-		OnUsageError: func(context *cli.Context, err error, isSubcommand bool) error {
-			log.Println("error:", err)
-			return nil
-		},
 		Commands: []*cli.Command{
 			&generateCommand,
 			&compressCommand,
@@ -225,6 +207,6 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatalln("failed to run cli app: ", err)
+		log.Fatalln(err)
 	}
 }
