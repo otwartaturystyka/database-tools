@@ -42,7 +42,7 @@ func Optimize(placeID string, noIcons bool, verbose bool) error {
 		}
 
 		if verbose {
-			log.Printf("optimize %s: created optimized icon\n", placeID)
+			log.Println("created optimized icon")
 		}
 	}
 
@@ -147,7 +147,7 @@ func verifyValidDirectoryStructure(
 			}
 
 			if verbose {
-				fmt.Printf("optimize %s: images/compressed/ dir was created\n", placeID)
+				fmt.Println("images/compressed/ dir was created")
 			}
 		} else {
 			return fmt.Errorf("stat images/compressed/ dir: %w", err)
