@@ -33,9 +33,9 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 		return fmt.Errorf("quality is not 1 or 2")
 	}
 
-	err := os.Chdir("database/" + regionID)
+	err := os.Chdir(filepath.Join("datafiles", "datafile-"+regionID))
 	if err != nil {
-		return fmt.Errorf("chdir into database directory: %v", err)
+		return fmt.Errorf("chdir into datafile's directory: %v", err)
 	}
 
 	meta, err := parseMeta(lang)
