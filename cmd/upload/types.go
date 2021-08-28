@@ -1,8 +1,8 @@
-package main
+package upload
 
 import "time"
 
-// FirestoreDatafile represents a document in /datafiles collection in Firestore.
+// FirestoreDatafile represents a document in datafiles collection in Firestore.
 type FirestoreDatafile struct {
 	Available        bool      `json:"available" firestore:"available"`
 	Featured         []string  `json:"featured" firestore:"featured"`

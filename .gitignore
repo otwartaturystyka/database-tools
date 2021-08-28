@@ -1,13 +1,17 @@
-key.json
-.DS_Store
+# editors
 .vscode/
 .idea/
+
+# misc
+.DS_Store
+
+key.json
 /database
 
+# generated
+/touristdb
 /generate
-/compress
 /notify
-/upload
 /walk
 /optimize
 

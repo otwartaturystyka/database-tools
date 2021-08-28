@@ -42,7 +42,7 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&regionID, "region-id", "", "region id")
 	flag.Float64Var(&minSize, "min-size", 2, "min size of images to list")
-	flag.StringVar(&sortBy, "sort-by", "count", "sort by \"count\" or \"ratio\"")
+	flag.StringVar(&sortBy, "sort-by", "count", "sort by 'count' or 'ratio'")
 	flag.BoolVar(&images, "images", false, "whether to list normal images (files not starting with ic_")
 	flag.BoolVar(&icons, "icons", false, "whether to list icons (files starting with ic_)")
 	flag.BoolVar(&splitPaths, "split-paths", false, "whether to split filepaths")
