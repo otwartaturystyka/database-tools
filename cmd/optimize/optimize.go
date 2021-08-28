@@ -11,7 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	// "github.com/jdeng/goheif" FIXME: re-renable
+	// "github.com/jdeng/goheif" FIXME: re-renable (doesn't work on Apple Silicon)
 )
 
 // Optimize creates optimized versions of images from images in the place's "original" directory.

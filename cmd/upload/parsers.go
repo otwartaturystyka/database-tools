@@ -33,7 +33,7 @@ func parseMeta(regionID string, lang string) (*models.Meta, error) {
 }
 
 func makeThumbBlurhash(regionID string) (blur string, err error) {
-	file, err := os.Open(filepath.Join("database", regionID, "meta", "thumb_mini.webp"))
+	file, err := os.Open(filepath.Join("datafiles", "datafile-"+regionID, "meta", "thumb_mini.webp"))
 	if err != nil {
 		return "", err
 	}
