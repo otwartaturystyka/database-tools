@@ -1,0 +1,26 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+    
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [arm64, amd64]
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
+
+    - name: Build
+      run: make
