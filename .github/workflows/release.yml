@@ -8,9 +8,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  create_release:
+    runs-on: ubuntu
+    
+    steps:
+    - name: Create release
+      uses: actions/create-release@v1
+      with:
+        prerelease: true
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+      outputs:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
 
   build:
     runs-on: ubuntu-latest
+    needs: create_release
     
     strategy:
       matrix:
@@ -24,23 +40,16 @@ jobs:
       with:
         go-version: 1.17
 
-    - name: Build
+    - name: Build artifact
       run: make
-      
-    - name: Create release
-      uses: actions/create-release@v1
-      id: create_release
-      with:
-        prerelease: true
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
         
-    - name: Upload darwin artifact
+    - name: Compress artifact
+      run: tar -czf touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz touristdb
+        
+    - name: Upload artifact
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
         asset_path: ./touristdb
         asset_name: touristdb
         asset_content_type: application/octet-stream
