@@ -2,14 +2,14 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    tags:
+      - 'v*.*.*'
     
   workflow_dispatch:
 
 jobs:
 
   build:
-    name: Create Release
     runs-on: ubuntu-latest
     
     strategy:
@@ -26,3 +26,23 @@ jobs:
 
     - name: Build
       run: make
+      
+    - name: Create release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        prerelease: true
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        
+    - name: Upload darwin artifact
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./touristdb
+        asset_name: touristdb
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
