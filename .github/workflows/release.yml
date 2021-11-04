@@ -3,58 +3,57 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
-    
+      - "v*.*.*"
+
   workflow_dispatch:
 
 jobs:
   create_release:
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     name: Create release
-    
-    outputs:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-    
-    steps:
-    - name: Create release
-      uses: actions/create-release@v1
-      with:
-        prerelease: true
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
 
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+    steps:
+      - name: Create release
+        uses: actions/create-release@v1
+        with:
+          prerelease: true
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   build_release:
     runs-on: ubuntu-latest
     name: Build release
     needs: create_release
-    
+
     strategy:
       matrix:
         goos: [linux, windows, darwin]
         goarch: [arm64, amd64]
-    
+
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
 
-    - name: Build artifact
-      run: make
-        
-    - name: Compress artifact
-      run: tar -czf touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz touristdb
-        
-    - name: Upload artifact
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_path: ./touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
-        asset_name: touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
-        asset_content_type: application/octet-stream
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+      - name: Build artifact
+        run: make
+
+      - name: Compress artifact
+        run: tar -czf touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz touristdb
+
+      - name: Upload artifact
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          asset_name: touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
