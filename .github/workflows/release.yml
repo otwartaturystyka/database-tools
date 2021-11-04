@@ -12,14 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      upload_url: ${{ steps.create_release_step.outputs.upload_url }}
 
     steps:
       - name: Create release
-        id: create_release
+        id: create_release_step
         uses: actions/create-release@v1
         with:
-          prerelease: true
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
         env:
@@ -45,7 +44,7 @@ jobs:
           go-version: 1.17
 
       - name: Build artifact
-        run: make
+        run: GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} make
 
       - name: Compress artifact
         run: tar -czf touristdb.${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz touristdb
