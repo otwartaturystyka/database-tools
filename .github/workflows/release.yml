@@ -10,7 +10,6 @@ on:
 jobs:
   create_release:
     runs-on: ubuntu-latest
-    name: Create release
 
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -21,13 +20,12 @@ jobs:
         with:
           prerelease: true
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: ${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
   build_release:
     runs-on: ubuntu-latest
-    name: Build release
     needs: create_release
 
     strategy:
@@ -36,6 +34,9 @@ jobs:
         goarch: [arm64, amd64]
 
     steps:
+      - name: print release upload_url
+        run: echo upload_url is ${{ needs.create_release.outputs.upload_url }}
+
       - uses: actions/checkout@v2
 
       - uses: actions/setup-go@v2
