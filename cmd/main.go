@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,8 +14,6 @@ import (
 	"github.com/bartekpacia/database-tools/models"
 	"github.com/urfave/cli/v2"
 )
-
-var ErrInvalidRegionID = errors.New("invalid region id")
 
 func init() {
 	log.SetFlags(0)
@@ -56,8 +53,10 @@ var generateCommand = cli.Command{
 		quality := models.Quality(c.Int("quality"))
 		verbose := c.Bool("verbose")
 
+		fmt.Println("env: " + os.Getenv("XDXD"))
+
 		if regionID == "" {
-			return ErrInvalidRegionID
+			return fmt.Errorf("region id is empty")
 		}
 
 		err := generate.Generate(regionID, lang, quality, verbose)
@@ -88,7 +87,7 @@ var compressCommand = cli.Command{
 		verbose := c.Bool("verbose")
 
 		if regionID == "" {
-			return ErrInvalidRegionID
+			return fmt.Errorf("region id is empty")
 		}
 
 		compress.Compress(regionID, verbose)
@@ -138,7 +137,7 @@ var uploadCommand = cli.Command{
 		prod := c.Bool("prod")
 
 		if regionID == "" {
-			return ErrInvalidRegionID
+			return fmt.Errorf("region id is empty")
 		}
 
 		err := upload.InitFirebase()
