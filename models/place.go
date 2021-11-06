@@ -72,7 +72,6 @@ func (p *Place) Parse(lang string) error {
 	// Headers and content
 	p.Headers = make([]string, 0)
 	p.Content = make([]string, 0)
-	p.Actions = make([]Action, 0)
 	for i := 0; true; i++ {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
 		textFile, err := os.Open(textFilePath)
@@ -96,11 +95,13 @@ func (p *Place) Parse(lang string) error {
 
 		p.Headers = append(p.Headers, strings.TrimSuffix(header, "\n"))
 		p.Content = append(p.Content, strings.TrimSuffix(content, "\n"))
+	}
 
-		err = p.makeActions(lang)
-		if err != nil {
-			return fmt.Errorf("make actions for place %s: %w", p.ID, err)
-		}
+	// Actions
+	p.Actions = make([]Action, 0)
+	err = p.makeActions(lang)
+	if err != nil {
+		return fmt.Errorf("make actions for place %s: %w", p.ID, err)
 	}
 
 	return nil
