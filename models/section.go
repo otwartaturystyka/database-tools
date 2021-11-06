@@ -23,7 +23,7 @@ type Section struct {
 // Parse parses section data from its directory and assigns
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
-func (section *Section) Parse(lang string) error {
+func (section *Section) Parse(lang string, verbose bool) error {
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
@@ -60,7 +60,7 @@ func (section *Section) Parse(lang string) error {
 		os.Chdir(path)
 
 		var place Place
-		err = place.Parse(lang)
+		err = place.Parse(lang, verbose)
 		if err != nil {
 			return fmt.Errorf("parse place %#v: %w", path, err)
 		}

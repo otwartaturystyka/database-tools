@@ -45,7 +45,7 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 	datafile.Meta = meta
 	datafile.Meta.GeneratedAt = readers.CurrentTime() // Important!
 
-	sections, err := parseSections(lang)
+	sections, err := parseSections(lang, verbose)
 	if err != nil {
 		return fmt.Errorf("parse sections: %v", err)
 	}

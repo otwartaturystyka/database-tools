@@ -53,8 +53,6 @@ var generateCommand = cli.Command{
 		quality := models.Quality(c.Int("quality"))
 		verbose := c.Bool("verbose")
 
-		fmt.Println("env: " + os.Getenv("XDXD"))
-
 		if regionID == "" {
 			return fmt.Errorf("region id is empty")
 		}

@@ -20,7 +20,7 @@ func parseMeta(lang string) (models.Meta, error) {
 	return meta, err
 }
 
-func parseSections(lang string) ([]models.Section, error) {
+func parseSections(lang string, verbose bool) ([]models.Section, error) {
 	sections := make([]models.Section, 0)
 
 	walker := func(path string, info os.FileInfo, err error) error {
@@ -36,7 +36,7 @@ func parseSections(lang string) ([]models.Section, error) {
 		os.Chdir(path)
 
 		var section models.Section
-		err = section.Parse(lang)
+		err = section.Parse(lang, verbose)
 		if err != nil {
 			return fmt.Errorf("parse section %s: %w", path, err)
 		}

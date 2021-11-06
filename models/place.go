@@ -33,7 +33,7 @@ type Place struct {
 // Parse parses place data from its directory and assigns
 // it to track pointed to by p. It must be used directly
 // in the place's directory.
-func (p *Place) Parse(lang string) error {
+func (p *Place) Parse(lang string, verbose bool) error {
 	// Technicla metadata
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
@@ -77,7 +77,15 @@ func (p *Place) Parse(lang string) error {
 		textFile, err := os.Open(textFilePath)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("file %s of place %s does not exist (most probably, this place does not have additional content)\n", textFilePath, p.ID)
+				if verbose {
+					fmt.Printf(
+						"file %s of place %s does not exist (most probably, "+
+							"this place does not have any content, so the file "+
+							"does not exist)\n",
+						textFilePath,
+						p.ID,
+					)
+				}
 				break
 			}
 
@@ -99,7 +107,7 @@ func (p *Place) Parse(lang string) error {
 
 	// Actions
 	p.Actions = make([]Action, 0)
-	err = p.makeActions(lang)
+	err = p.makeActions(lang, verbose)
 	if err != nil {
 		return fmt.Errorf("make actions for place %s: %w", p.ID, err)
 	}
@@ -107,10 +115,19 @@ func (p *Place) Parse(lang string) error {
 	return nil
 }
 
-func (p *Place) makeActions(lang string) error {
+func (p *Place) makeActions(lang string, verbose bool) error {
 	actionValuesFile, err := readers.ReadFromFile("actions.json")
 	if err != nil {
-		fmt.Printf("file %s of place %s does not exist (most probably, this place does not have any actions)\n", "actions.json", p.ID)
+		if verbose {
+			fmt.Printf(
+				"failed to open file %s of place %s (most "+
+					"probably, this place does not have any actions, so the file "+
+					"does not not exist)\n",
+				"actions.json",
+				p.ID,
+			)
+		}
+
 		return nil
 	}
 
