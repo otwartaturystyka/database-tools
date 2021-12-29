@@ -88,20 +88,19 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 	}
 
 	datafileData := FirestoreDatafile{
-		Available:        true,
-		Featured:         meta.Featured,
-		FileSize:         zipFileInfo.Size(),
-		FileURL:          fileLocation,
-		LastUploadedTime: readers.CurrentTime(),
-		GeneratedAt:      meta.GeneratedAt,
-		UploadedAt:       readers.CurrentTime(),
-		IsTestVersion:    !prod,
-		Position:         position,
-		RegionID:         regionID,
-		RegionName:       meta.RegionName,
-		ThumbBlurhash:    thumbBlurhash,
-		ThumbMiniURL:     thumbMiniLocation,
-		ThumbURL:         thumbLocation,
+		Available:     true,
+		Featured:      meta.Featured,
+		FileSize:      zipFileInfo.Size(),
+		FileURL:       fileLocation,
+		GeneratedAt:   meta.GeneratedAt,
+		UploadedAt:    readers.CurrentTime(),
+		IsTestVersion: !prod,
+		Position:      position,
+		RegionID:      regionID,
+		RegionName:    meta.RegionName,
+		ThumbBlurhash: thumbBlurhash,
+		ThumbMiniURL:  thumbMiniLocation,
+		ThumbURL:      thumbLocation,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
