@@ -1,11 +1,10 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - "v*.*.*"
-
-  workflow_dispatch:
+      - "v*"
 
 jobs:
   create_release:
@@ -19,8 +18,8 @@ jobs:
         id: create_release_step
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
