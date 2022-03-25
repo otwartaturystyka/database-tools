@@ -158,7 +158,7 @@ func verifyValidDirectoryStructure(
 
 // MakeIcons creates a compressed 512x512 WEBP version of an original 1024x1024 JPG or HEIC icon.
 func makeIcon(srcPath string, dstPath string) error {
-	cmd := exec.Command("magick", srcPath, "-resize", "512x512", dstPath)
+	cmd := exec.Command("convert", srcPath, "-resize", "512x512", dstPath)
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("run ImageMagick for icon at %s: %w", srcPath, err)
@@ -170,7 +170,7 @@ func makeIcon(srcPath string, dstPath string) error {
 // MakeImage creates a compressed WEBP version of an original JPEG or HEIC image.
 // The compressed image has 4 times smaller resolution and also has decreased quality.
 func makeImage(srcPath string, dstPath string) error {
-	cmd := exec.Command("magick", srcPath, "-resize", "25%", "-quality", "75", dstPath)
+	cmd := exec.Command("convert", srcPath, "-resize", "25%", "-quality", "75", dstPath)
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("run ImageMagick for image at %s: %w", srcPath, err)
