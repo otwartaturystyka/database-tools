@@ -103,6 +103,8 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 		}
 	}
 
+	log.Println("generated mini icons")
+
 	for _, story := range stories {
 		_, err := copyMarkdown(regionID, story.MarkdownPath())
 		if err != nil {
