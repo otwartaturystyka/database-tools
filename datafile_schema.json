@@ -209,7 +209,14 @@
             }
           }
         },
-        "required": ["id", "name", "icon", "background_image", "quick_info", "places"]
+        "required": [
+          "id",
+          "name",
+          "icon",
+          "background_image",
+          "quick_info",
+          "places"
+        ]
       }
     },
     "tracks": {
@@ -220,7 +227,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique ID of the trail in the datafile."
+            "description": "Unique ID of the trail."
           },
           "name": {
             "type": "string",
@@ -236,17 +243,17 @@
           },
           "coords": {
             "type": "array",
-            "description": "Coordinates representing the trail on map.",
+            "description": "Coordinates that the trail consists of.",
             "items": {
               "type": "object",
               "properties": {
                 "lat": {
                   "type": "number",
-                  "description": "Latitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                  "description": "Latitude of a single track point. Format: DDD.DDDDD° (Decimal Degrees)"
                 },
                 "lng": {
                   "type": "number",
-                  "description": "Longitude of the coord. Format: DDD.DDDDD° (Decimal Degrees)"
+                  "description": "Longitude of single track point. Format: DDD.DDDDD° (Decimal Degrees)"
                 }
               }
             }
@@ -259,7 +266,25 @@
       "type": "array",
       "items": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID of the story."
+          },
+          "name": {
+            "type": "string",
+            "description": "Localized name of the story."
+          },
+          "markdown_filename": {
+            "type": "string",
+            "description": "Name of the markdown filename (contents of this story)."
+          },
+          "images": {
+            "type": "array",
+            "description": "Filenames of images that are referenced from markdown_filename"
+          }
+        },
+        "required": ["id", "name", "markdown_filename", "images"]
       }
     }
   }
