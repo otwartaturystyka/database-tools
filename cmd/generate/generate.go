@@ -1,5 +1,5 @@
-// Package generate implements the process of generating a directory
-// from data available in the database.
+// Package generate implements the process of generating a directory from data
+// available in the database.
 package generate
 
 import (
@@ -21,7 +21,8 @@ func init() {
 	log.SetFlags(0)
 }
 
-// Generate walks the database and copies files from it to the generated directory.
+// Generate walks the database and copies files from it to the generated
+// directory.
 func Generate(regionID string, lang string, quality models.Quality, verbose bool) error {
 	var datafile models.Datafile
 
@@ -173,7 +174,8 @@ func copyFile(regionID string, srcPath string, subdir string) (int, error) {
 	return int(n), nil
 }
 
-// CreateOutputDir creates a datafile directory structure inside generated/ in project root.
+// CreateOutputDir creates a datafile directory structure inside generated/ in
+// project root.
 func createOutputDir(regionID string) (*os.File, error) {
 	generatedPath := "generated"
 	outputDirPath := filepath.Join(generatedPath, regionID)

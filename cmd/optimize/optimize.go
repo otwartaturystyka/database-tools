@@ -1,4 +1,4 @@
-// Package optimize implements a simple image optimization functionality.
+// Package optimize implements simple image optimization functionality.
 package optimize
 
 import (
@@ -11,11 +11,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	// "github.com/jdeng/goheif" FIXME: re-renable (doesn't work on Apple Silicon)
+	// "github.com/jdeng/goheif" // FIXME: enable (doesn't work on Apple Silicon)
 )
 
-// Optimize creates optimized versions of images from images in the place's "original" directory.
-// placePath must point to a valid place.
+// Optimize creates optimized versions of images from images in the place's
+// "original" directory. placePath must point to a valid place.
 func Optimize(placeID string, noIcons bool, verbose bool) error {
 	// Make srcPath - either .jpg or .heic
 	originalIconPath := fmt.Sprintf("images/original/ic_%s.jpg", placeID)
@@ -156,7 +156,8 @@ func verifyValidDirectoryStructure(
 	return nil
 }
 
-// MakeIcons creates a compressed 512x512 WEBP version of an original 1024x1024 JPG or HEIC icon.
+// MakeIcons creates a compressed 512x512 WEBP version of an original 1024x1024
+// JPG or HEIC icon.
 func makeIcon(srcPath string, dstPath string) error {
 	cmd := exec.Command("convert", srcPath, "-resize", "512x512", dstPath)
 	err := cmd.Run()
@@ -167,8 +168,9 @@ func makeIcon(srcPath string, dstPath string) error {
 	return nil
 }
 
-// MakeImage creates a compressed WEBP version of an original JPEG or HEIC image.
-// The compressed image has 4 times smaller resolution and also has decreased quality.
+// MakeImage creates a compressed WEBP version of an original JPEG or HEIC
+// image. The compressed image has 4 times smaller resolution and also has
+// decreased quality.
 func makeImage(srcPath string, dstPath string) error {
 	cmd := exec.Command("convert", srcPath, "-resize", "25%", "-quality", "75", dstPath)
 	err := cmd.Run()
@@ -189,7 +191,8 @@ func getImageDimensions(imagePath string) (int, int, error) {
 	var config image.Config
 
 	_ = ext
-	// FIXME: enable
+	// FIXME: re-enable
+
 	// if ext == ".heic" {
 	// 	config, err = goheif.DecodeConfig(file)
 	// 	if err != nil {

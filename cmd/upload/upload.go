@@ -1,5 +1,5 @@
-// Package upload implements functionality related to uploading
-// region's zip archive to the cloud.
+// Package upload implements functionality related to uploading region's zip
+// archive to the cloud.
 package upload
 
 import (
@@ -152,7 +152,8 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 	return nil
 }
 
-// Upload uploads file at localPath (relative) to Cloud Storage at cloudPath (absolute).
+// Upload uploads file at localPath (relative) to Cloud Storage at cloudPath
+// (absolute).
 func upload(localPath string, cloudPath string, contentType string) error {
 	ctx := context.TODO()
 

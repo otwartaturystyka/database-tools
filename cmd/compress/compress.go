@@ -11,7 +11,8 @@ import (
 	"strings"
 )
 
-// Compress takes a generated directory of region's datafile and creates a zip archive out of it.
+// Compress takes a generated directory of region's datafile and creates a zip
+// archive out of it.
 func Compress(regionID string, verbose bool) error {
 	_, err := os.Stat("compressed/")
 	if os.IsNotExist(err) {

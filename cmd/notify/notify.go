@@ -1,5 +1,4 @@
-// Package notify implements sending push notifications
-// to the mobile app.
+// Package notify implements sending push notifications to the mobile app.
 package notify
 
 import (
@@ -51,8 +50,8 @@ func InitFirebase() error {
 	return nil
 }
 
-// Notify sends a push notification to users of the app who have
-// regionID set as their default region.
+// Notify sends a push notification to users of the app who have regionID set as
+// their default region.
 func Notify(regionID string, verbose bool) error {
 	if regionID == "" {
 		return fmt.Errorf("regionID is empty")
