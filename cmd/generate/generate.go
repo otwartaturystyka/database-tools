@@ -131,7 +131,8 @@ func makeMiniIcon(regionID string, srcPath string) error {
 
 	miniIconFilename := "mini_" + filepath.Base(srcPath)
 	dstPath := filepath.Join(wd, "generated", regionID, "images", miniIconFilename)
-	err = exec.Command("convert", srcPath, "-quality", "60%", "-resize", "128x128", "-debug", dstPath).Run()
+	cmd := exec.Command("convert", srcPath, "-quality", "60%", "-resize", "128x128", dstPath)
+	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("run ImageMagick on image at %s: %w", srcPath, err)
 	}
