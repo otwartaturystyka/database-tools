@@ -11,7 +11,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	// "github.com/jdeng/goheif" // FIXME: enable (doesn't work on Apple Silicon)
+
+	"github.com/adrium/goheif"
 )
 
 // Optimize creates optimized versions of images from images in the place's
@@ -190,17 +191,14 @@ func getImageDimensions(imagePath string) (int, int, error) {
 	ext := filepath.Ext(imagePath)
 	var config image.Config
 
-	_ = ext
-	// FIXME: re-enable
+	if ext == ".heic" {
+		config, err = goheif.DecodeConfig(file)
+		if err != nil {
+			return 0, 0, err
+		}
 
-	// if ext == ".heic" {
-	// 	config, err = goheif.DecodeConfig(file)
-	// 	if err != nil {
-	// 		return 0, 0, err
-	// 	}
-
-	// 	return config.Width, config.Height, nil
-	// }
+		return config.Width, config.Height, nil
+	}
 
 	config, _, err = image.DecodeConfig(file)
 	if err != nil {
