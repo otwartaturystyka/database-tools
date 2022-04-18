@@ -71,18 +71,18 @@
             }
           },
           "description": "Links leading to interesting websites, related to the region."
-        },
-        "required": [
-          "region_id",
-          "region_name",
-          "center",
-          "generated_at",
-          "contributors",
-          "featured",
-          "sources",
-          "links"
-        ]
-      }
+        }
+      },
+      "required": [
+        "region_id",
+        "region_name",
+        "center",
+        "generated_at",
+        "contributors",
+        "featured",
+        "sources",
+        "links"
+      ]
     },
     "sections": {
       "type": "array",
