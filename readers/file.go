@@ -24,17 +24,31 @@ func ReadFromFile(filepath string) ([]byte, error) {
 	return fileContent, nil
 }
 
-// ReadSection reads a section (consisting of header and content) from file.
-func ReadSection(file io.Reader, filename string) (header string, content string, err error) {
-	data, err := io.ReadAll(file)
+// ReadSection reads a section (consisting of header and content) from r.
+func ReadSection(r io.Reader) (header string, content string, err error) {
+	data, err := io.ReadAll(r)
 	if err != nil {
-		err = fmt.Errorf("failed to read from file %s: %v", filename, err)
+		err = fmt.Errorf("failed to read from file: %v", err)
 		return
 	}
 
-	chunks := strings.SplitN(string(data), "\n\n", 2)
+	text := string(data)
+
+	chunks := strings.Split(text, "\n\n")
 	header = chunks[0]
-	content = strings.TrimSuffix(chunks[1], "\n")
+
+	for i := 1; i < len(chunks); i++ {
+		chunk := chunks[i]
+		chunk = strings.ReplaceAll(chunk, "\n", " ")
+
+		if i != len(chunks)-1 {
+			chunk += "\n\n"
+		} else {
+			chunk = strings.TrimSuffix(chunk, " ")
+		}
+
+		content += chunk
+	}
 
 	return
 }
