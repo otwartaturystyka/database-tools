@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+region_id="${1:-}"
+lang="${2:-pl}"
+prod="${3:-}"
+
+if [ -z "${region_id}" ]; then
+  echo "Usage: publish <region_id> <lang> [--prod]"
+  exit 1
+fi
+
+echo "region_id: $region_id, lang: $lang"
+
+./touristdb generate -id "$region_id" --lang "$lang" -v
+
+./touristdb compress -id "$region_id" --verbose
+
+
+if [ "$region_id" = "rudy" ]; then
+    position=1
+elif [ "$region_id" = "rudnik" ]; then 
+    position=2
+elif [ "$region_id" = "pilchowice" ]; then 
+    position=3
+else
+    echo "unknown position for region_id: $region_id"
+fi
+
+echo "y" | ./touristdb upload -id "$region_id" --position "$position" "$prod"
