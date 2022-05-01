@@ -15,7 +15,7 @@ func TestReadSectionNormal(t *testing.T) {
 	buffer.WriteString("Example content")
 	buffer.WriteString("\n")
 
-	gotHeader, gotContent, err := ReadSection(&buffer, "testfile")
+	gotHeader, gotContent, err := ReadSection(&buffer)
 	if err != nil {
 		t.Error(err)
 	}
@@ -42,7 +42,7 @@ func TestReadSectionTooLong(t *testing.T) {
 	buffer.WriteString("Example content part 3")
 	buffer.WriteString("\n")
 
-	gotHeader, gotContent, err := ReadSection(&buffer, "testfile")
+	gotHeader, gotContent, err := ReadSection(&buffer)
 	if err != nil {
 		t.Error(err)
 	}

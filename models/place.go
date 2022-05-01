@@ -91,18 +91,15 @@ func (p *Place) Parse(lang string, verbose bool) error {
 
 			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
 		}
+		defer textFile.Close()
 
-		header, content, err := readers.ReadSection(textFile, textFile.Name())
+		header, content, err := readers.ReadSection(textFile)
 		if err != nil {
-			return err
-		}
-		err = textFile.Close()
-		if err != nil {
-			return err
+			return fmt.Errorf("failed to read section %d of place %s: %w", i, p.ID, err)
 		}
 
-		p.Headers = append(p.Headers, strings.TrimSuffix(header, "\n"))
-		p.Content = append(p.Content, strings.TrimSuffix(content, "\n"))
+		p.Headers = append(p.Headers, header)
+		p.Content = append(p.Content, content)
 	}
 
 	// Actions
