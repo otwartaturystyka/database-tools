@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// ReadFromFile opens and reads from file at filepath. It gracefully
-// handles errors.
+// ReadFromFile opens and reads from file at filepath. It gracefully handles
+// errors.
 func ReadFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
@@ -24,27 +24,17 @@ func ReadFromFile(filepath string) ([]byte, error) {
 	return fileContent, nil
 }
 
-// ReadTextualData reads header and content from file.
-func ReadTextualData(file io.Reader, filename string) (header string, content string, err error) {
+// ReadSection reads a section (consisting of header and content) from file.
+func ReadSection(file io.Reader, filename string) (header string, content string, err error) {
 	data, err := io.ReadAll(file)
 	if err != nil {
 		err = fmt.Errorf("failed to read from file %s: %v", filename, err)
 		return
 	}
 
-	text := string(data)
-
-	chunks := strings.Split(text, "\n\n")
+	chunks := strings.SplitN(string(data), "\n\n", 2)
 	header = chunks[0]
+	content = strings.TrimSuffix(chunks[1], "\n")
 
-	for i := 1; i < len(chunks)-1; i++ {
-		chunk := chunks[i]
-		chunk = strings.ReplaceAll(chunk, "\n", " ")
-		content += chunk
-
-		if i != len(text)-1 {
-			content += "\n"
-		}
-	}
 	return
 }

@@ -92,7 +92,7 @@ func (p *Place) Parse(lang string, verbose bool) error {
 			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
 		}
 
-		header, content, err := readers.ReadTextualData(textFile, textFile.Name())
+		header, content, err := readers.ReadSection(textFile, textFile.Name())
 		if err != nil {
 			return err
 		}
