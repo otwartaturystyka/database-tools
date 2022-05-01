@@ -2,29 +2,19 @@
 set -euo pipefail
 
 region_id="${1:-}"
-lang="${2:-pl}"
-prod="${3:-}"
+language="${2:-}"
+position="${3:-}"
+prod="${4:-}"
 
-if [ -z "${region_id}" ]; then
-  echo "Usage: publish <region_id> <lang> [--prod]"
+if [ -z "$region_id" ] || [ -z "$language" ] || [ -z "$position" ]; then
+  echo "Usage: publish <region_id> <language> <position> [--prod]"
   exit 1
 fi
 
-echo "region_id: $region_id, lang: $lang"
+echo "region_id: $region_id, language: $language, position: $position"
 
-./touristdb generate -id "$region_id" --lang "$lang" -v
+./touristdb generate -id "$region_id" --language "$language" -v
 
 ./touristdb compress -id "$region_id" --verbose
 
-
-if [ "$region_id" = "rudy" ]; then
-    position=1
-elif [ "$region_id" = "rudnik" ]; then 
-    position=2
-elif [ "$region_id" = "pilchowice" ]; then 
-    position=3
-else
-    echo "unknown position for region_id: $region_id"
-fi
-
-echo "y" | ./touristdb upload -id "$region_id" --position "$position" "$prod"
+echo "y" | ./touristdb upload -id "$region_id" --language "$language" --position "$position"  "$prod"

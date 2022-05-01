@@ -26,13 +26,12 @@ var generateCommand = cli.Command{
 		&cli.StringFlag{
 			Name:    "region-id",
 			Aliases: []string{"id"},
-			Value:   "",
 			Usage:   "region whose data directory will be generated",
 		},
 		&cli.StringFlag{
-			Name:  "lang",
-			Value: "pl",
-			Usage: "language of the generated directory",
+			Name:    "language",
+			Aliases: []string{"lang"},
+			Usage:   "language of the generated directory",
 		},
 		&cli.IntFlag{
 			Name:    "quality",
@@ -43,13 +42,12 @@ var generateCommand = cli.Command{
 		&cli.BoolFlag{
 			Name:    "verbose",
 			Aliases: []string{"v"},
-			Value:   false,
 			Usage:   "print extensive logs",
 		},
 	},
 	Action: func(c *cli.Context) error {
 		regionID := c.String("region-id")
-		lang := c.String("lang")
+		language := c.String("lang")
 		quality := models.Quality(c.Int("quality"))
 		verbose := c.Bool("verbose")
 
@@ -57,7 +55,11 @@ var generateCommand = cli.Command{
 			return fmt.Errorf("region id is empty")
 		}
 
-		err := generate.Generate(regionID, lang, quality, verbose)
+		if language == "" {
+			return fmt.Errorf("language is empty")
+		}
+
+		err := generate.Generate(regionID, language, quality, verbose)
 		return err
 	},
 }
@@ -102,40 +104,44 @@ var uploadCommand = cli.Command{
 		&cli.StringFlag{
 			Name:    "region-id",
 			Aliases: []string{"id"},
-			Value:   "",
 			Usage:   "region whose zip archive will be uploaded",
 		},
 		&cli.StringFlag{
-			Name:  "lang",
-			Value: "pl",
-			Usage: "language of the zip archive that will be uploaded",
+			Name:    "language",
+			Aliases: []string{"lang"},
+			Usage:   "language of the zip archive that will be uploaded",
 		},
 		&cli.IntFlag{
 			Name:    "position",
 			Aliases: []string{"pos"},
-			Value:   1,
 			Usage:   "position at which the datafile will be shown in the app",
 		},
 		&cli.BoolFlag{
 			Name:  "only-meta",
-			Value: false,
 			Usage: "upload only region's metadata, not the zip archive",
 		},
 		&cli.BoolFlag{
 			Name:  "prod",
-			Value: false,
 			Usage: "(dangerous!) upload to production collection (default is test collection)",
 		},
 	},
 	Action: func(c *cli.Context) error {
 		regionID := c.String("region-id")
-		lang := c.String("lang")
+		language := c.String("language")
 		position := c.Int("position")
-		onlyMeta := c.Bool("onlyMeta")
+		onlyMeta := c.Bool("only-meta")
 		prod := c.Bool("prod")
 
 		if regionID == "" {
 			return fmt.Errorf("region id is empty")
+		}
+
+		if language == "" {
+			return fmt.Errorf("language is empty")
+		}
+
+		if position == 0 {
+			return fmt.Errorf("position is 0")
 		}
 
 		err := upload.InitFirebase()
@@ -143,7 +149,7 @@ var uploadCommand = cli.Command{
 			return fmt.Errorf("init firebase: %v", err)
 		}
 
-		err = upload.Upload(regionID, lang, position, onlyMeta, prod)
+		err = upload.Upload(regionID, language, position, onlyMeta, prod)
 		if err != nil {
 			return fmt.Errorf("upload %s: %v", regionID, err)
 		}
