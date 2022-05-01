@@ -1,8 +1,6 @@
 package readers
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -28,38 +26,25 @@ func ReadFromFile(filepath string) ([]byte, error) {
 
 // ReadTextualData reads header and content from file.
 func ReadTextualData(file io.Reader, filename string) (header string, content string, err error) {
-	reader := bufio.NewReader(file)
-	header, err = reader.ReadString('\n')
+	data, err := io.ReadAll(file)
 	if err != nil {
-		if errors.Is(err, io.EOF) {
-			err = nil
-		} else {
-			err = fmt.Errorf("read header (line 1) from file %s: %v", filename, err)
-			return
-		}
-	}
-	header = strings.TrimSuffix(header, "\n")
-
-	_, err = reader.ReadString('\n')
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			err = nil
-		} else {
-			err = fmt.Errorf("read 3-slash divider (line 2) from file %s: %v", filename, err)
-			return
-		}
+		err = fmt.Errorf("failed to read from file %s: %v", filename, err)
+		return
 	}
 
-	content, err = reader.ReadString('\n')
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			err = nil
-		} else {
-			err = fmt.Errorf("read content (line 3) from file %s: %v", filename, err)
-			return
+	text := string(data)
+
+	chunks := strings.Split(text, "\n\n")
+	header = chunks[0]
+
+	for i := 1; i < len(chunks)-1; i++ {
+		chunk := chunks[i]
+		chunk = strings.ReplaceAll(chunk, "\n", " ")
+		content += chunk
+
+		if i != len(text)-1 {
+			content += "\n"
 		}
 	}
-	content = strings.TrimSuffix(content, "\n")
-
 	return
 }
