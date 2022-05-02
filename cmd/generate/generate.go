@@ -51,6 +51,7 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 		return fmt.Errorf("parse sections: %v", err)
 	}
 	datafile.Sections = sections
+	datafile.Meta.PlaceCount = len(datafile.AllPlaces())
 
 	tracks, err := parseTracks(lang)
 	if err != nil {

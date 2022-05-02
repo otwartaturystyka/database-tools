@@ -7,3 +7,13 @@ type Datafile struct {
 	Tracks   []Track   `json:"tracks"`
 	Stories  []Story   `json:"stories"`
 }
+
+// AllPlaces returns places from all sections.
+func (d *Datafile) AllPlaces() []Place {
+	places := make([]Place, 0)
+	for _, section := range d.Sections {
+		places = append(places, section.Places...)
+	}
+
+	return places
+}

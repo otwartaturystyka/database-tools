@@ -92,6 +92,7 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 		Featured:      meta.Featured,
 		FileSize:      zipFileInfo.Size(),
 		FileURL:       fileLocation,
+		PlaceCount:    meta.PlaceCount,
 		GeneratedAt:   meta.GeneratedAt,
 		UploadedAt:    readers.CurrentTime(),
 		Position:      position,

@@ -41,6 +41,9 @@ type Meta struct {
 
 	// Non-nil only for production datafiles.
 	CommitTag *string `json:"commit_tag"`
+
+	// Count of places in all sections.
+	PlaceCount int `json:"place_count"`
 }
 
 // Parse parses datafile's metadata and assigns it to meta struct pointed to by
