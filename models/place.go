@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/bartekpacia/database-tools/formatters"
 	"github.com/bartekpacia/database-tools/readers"
 )
 
@@ -55,19 +57,19 @@ func (p *Place) Parse(lang string, verbose bool) error {
 	if err != nil {
 		return err
 	}
-	p.Name = strings.TrimSuffix(string(name), "\n")
+	p.Name = formatters.ToContent(string(name))
 
 	quickInfo, err := readers.ReadFromFile(filepath.Join("content", lang, "quick_info.txt"))
 	if err != nil {
 		return err
 	}
-	p.QuickInfo = strings.TrimSuffix(string(quickInfo), "\n")
+	p.QuickInfo = formatters.ToContent(string(quickInfo))
 
 	overview, err := readers.ReadFromFile(filepath.Join("content", lang, "overview.txt"))
 	if err != nil {
 		return err
 	}
-	p.Overview = strings.TrimSuffix(string(overview), "\n")
+	p.Overview = formatters.ToContent(string(overview))
 
 	// Headers and content
 	p.Headers = make([]string, 0)
@@ -93,10 +95,12 @@ func (p *Place) Parse(lang string, verbose bool) error {
 		}
 		defer textFile.Close()
 
-		header, content, err := readers.ReadSection(textFile)
+		sectionText, err := io.ReadAll(textFile)
 		if err != nil {
-			return fmt.Errorf("failed to read section %d of place %s: %w", i, p.ID, err)
+			return fmt.Errorf("failed to read file %s: %w", textFilePath, err)
 		}
+
+		header, content := formatters.ToSection(string(sectionText))
 
 		p.Headers = append(p.Headers, header)
 		p.Content = append(p.Content, content)

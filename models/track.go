@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 
+	"github.com/bartekpacia/database-tools/formatters"
 	"github.com/bartekpacia/database-tools/readers"
 )
 
@@ -30,13 +31,13 @@ func (t *Track) Parse(lang string) error {
 	if err != nil {
 		return err
 	}
-	t.Overview = string(overview)
+	t.Overview = formatters.ToContent(string(overview))
 
 	quickInfo, err := readers.ReadFromFile(lang + "/quick_info.txt")
 	if err != nil {
 		return err
 	}
-	t.QuickInfo = string(quickInfo)
+	t.QuickInfo = formatters.ToContent(string(quickInfo))
 
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
