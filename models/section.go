@@ -62,7 +62,7 @@ func (section *Section) Parse(lang string, verbose bool) error {
 		var place Place
 		err = place.Parse(lang, verbose)
 		if err != nil {
-			return fmt.Errorf("parse place %#v: %w", path, err)
+			return fmt.Errorf("parse %s: %w", path, err)
 		}
 		os.Chdir("../..")
 

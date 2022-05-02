@@ -82,7 +82,7 @@ func parseSections(lang string, verbose bool) ([]models.Section, error) {
 		var section models.Section
 		err = section.Parse(lang, verbose)
 		if err != nil {
-			return fmt.Errorf("parse section %s: %w", path, err)
+			return fmt.Errorf("parse %s: %w", path, err)
 		}
 		os.Chdir("../..")
 

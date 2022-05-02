@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,7 +35,7 @@ type Place struct {
 // it to track pointed to by p. It must be used directly
 // in the place's directory.
 func (p *Place) Parse(lang string, verbose bool) error {
-	// Technicla metadata
+	// Technical metadata
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
@@ -76,7 +75,7 @@ func (p *Place) Parse(lang string, verbose bool) error {
 	p.Content = make([]string, 0)
 	for i := 0; true; i++ {
 		textFilePath := filepath.Join("content", lang, fmt.Sprintf("text_%d.txt", i))
-		textFile, err := os.Open(textFilePath)
+		text, err := readers.ReadFromFile(textFilePath)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				if verbose {
@@ -91,16 +90,10 @@ func (p *Place) Parse(lang string, verbose bool) error {
 				break
 			}
 
-			fmt.Printf("failed to open file %s: %v\n", textFilePath, err)
-		}
-		defer textFile.Close()
-
-		sectionText, err := io.ReadAll(textFile)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %w", textFilePath, err)
+			return fmt.Errorf("%w", err)
 		}
 
-		header, content := formatters.ToSection(string(sectionText))
+		header, content := formatters.ToSection(string(text))
 
 		p.Headers = append(p.Headers, header)
 		p.Content = append(p.Content, content)

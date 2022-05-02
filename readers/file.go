@@ -11,13 +11,13 @@ import (
 func ReadFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("open file %s: %w", filepath, err)
+		return nil, fmt.Errorf("%v", err)
 	}
 	defer file.Close()
 
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
-		return nil, fmt.Errorf("read all from file %s: %w", filepath, err)
+		return nil, fmt.Errorf("%w", err)
 	}
 
 	return fileContent, nil
