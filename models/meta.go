@@ -20,8 +20,8 @@ type Meta struct {
 	// Center of the Region
 	Center Location `json:"center"`
 
-	// Time of datafile generation. It is present only in generated datafile
-	// i.e after the "generate" program has been run.
+	// Time of datafile generation. It is present only in generated datafile i.e
+	// after the "generate" program has been run.
 	GeneratedAt time.Time `json:"generated_at"`
 
 	// People who somehow helped with creating the datafile.
@@ -35,10 +35,16 @@ type Meta struct {
 
 	// Related resources which might interest people using this datafile.
 	Links []Link `json:"links"`
+
+	// Hash that identifies the commit from which this datafile was generated.
+	CommitHash string `json:"commit_hash"`
+
+	// Non-nil only for production datafiles.
+	CommitTag *string `json:"commit_tag"`
 }
 
-// Parse parses datafile's metadata and assigns it to meta
-// struct pointed to by m.
+// Parse parses datafile's metadata and assigns it to meta struct pointed to by
+// m.
 func (m *Meta) Parse(lang string) error {
 	name, err := readers.ReadFromFile(filepath.Join(lang, "name.txt"))
 	if err != nil {
@@ -59,9 +65,9 @@ func (m *Meta) Parse(lang string) error {
 	return nil
 }
 
-// ParseFromGenerated parses metadata of the datafile in the
-// generated directory. It looks for data.json in the current
-// dir, parses it and and assigns it to meta struct pointed to by m.
+// ParseFromGenerated parses metadata of the datafile in the generated
+// directory. It looks for data.json in the current dir, parses it and and
+// assigns it to meta struct pointed to by m.
 func (m *Meta) ParseFromGenerated() error {
 	datafileData, err := readers.ReadFromFile("data.json")
 	if err != nil {

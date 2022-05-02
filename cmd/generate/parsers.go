@@ -3,21 +3,65 @@ package generate
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/bartekpacia/database-tools/models"
 )
 
-func parseMeta(lang string) (models.Meta, error) {
+func getCommitHash() (string, error) {
+	cmd := exec.Command("git", "rev-parse", "--short", "HEAD")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git rev-parse: %v", err)
+	}
+
+	hash := strings.TrimSpace(string(out))
+	return hash, nil
+}
+
+func getCommitTag() (string, error) {
+	cmd := exec.Command("git", "tag", "--points-at")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git tag: %v", err)
+	}
+
+	tag := strings.TrimSpace(string(out))
+	return tag, nil
+}
+
+func parseMeta(lang string) (meta models.Meta, err error) {
 	os.Chdir("meta")
 
-	var meta models.Meta
-	err := meta.Parse(lang)
+	err = meta.Parse(lang)
+	if err != nil {
+		err = fmt.Errorf("parse meta: %w", err)
+		return
+	}
 
 	os.Chdir("..")
 
-	return meta, err
+	commitHash, err := getCommitHash()
+	if err != nil {
+		err = fmt.Errorf("get commit hash: %v", err)
+		return
+	}
+	meta.CommitHash = commitHash
+
+	commitTag, err := getCommitTag()
+	if err != nil {
+		err = fmt.Errorf("get commit tag: %v", err)
+		return
+	}
+	if commitTag == "" {
+		meta.CommitTag = nil
+	} else {
+		meta.CommitTag = &commitTag
+	}
+
+	return
 }
 
 func parseSections(lang string, verbose bool) ([]models.Section, error) {
