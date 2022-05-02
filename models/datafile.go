@@ -1,3 +1,4 @@
+// Package models defines structure of a datafile.
 package models
 
 // Datafile represents structure of data.json file.
