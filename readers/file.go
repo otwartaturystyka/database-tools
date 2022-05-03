@@ -11,7 +11,7 @@ import (
 func ReadFromFile(filepath string) ([]byte, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("%v", err)
+		return nil, fmt.Errorf("%w", err)
 	}
 	defer file.Close()
 
