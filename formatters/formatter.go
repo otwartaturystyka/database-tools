@@ -4,13 +4,16 @@ package formatters
 
 import "strings"
 
-// ToContent converts whitespace and newline formatting so that it looks good
-// in the mobile app.
+// ToContent converts whitespace and newline formatting so that it looks good in
+// the mobile app.
 //
 // Used for:
+//
 // - Quick info
+//
 // - Overview
-// In sections, places and trails.
+//
+// in sections, places and trails.
 func ToContent(text string) (formattedText string) {
 	chunks := strings.Split(text, "\n\n")
 
@@ -30,8 +33,8 @@ func ToContent(text string) (formattedText string) {
 }
 
 // ToSection reads a section (consisting of header and content) from r.
-// - Quick info
-// - Overview
+//
+// Used for sections (header + content)
 func ToSection(text string) (header string, content string) {
 	chunks := strings.Split(text, "\n\n")
 	header = chunks[0]
