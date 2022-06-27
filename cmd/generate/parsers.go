@@ -32,7 +32,7 @@ func getCommitTag() (string, error) {
 	return tag, nil
 }
 
-func parseMeta(lang string) (meta models.Meta, err error) {
+func parseMeta() (meta models.Meta, err error) {
 	os.Chdir("meta")
 
 	err = meta.Parse(lang)
@@ -97,7 +97,7 @@ func parseSections(lang string, verbose bool) ([]models.Section, error) {
 	return sections, err
 }
 
-func parseTracks(lang string) ([]models.Track, error) {
+func parseTracks() ([]models.Track, error) {
 	tracks := make([]models.Track, 0)
 
 	if _, err := os.Stat("tracks"); os.IsNotExist(err) {
@@ -117,7 +117,7 @@ func parseTracks(lang string) ([]models.Track, error) {
 		os.Chdir(path)
 
 		var track models.Track
-		err = track.Parse(lang)
+		err = track.Parse()
 
 		tracks = append(tracks, track)
 		os.Chdir("../..")
@@ -129,7 +129,7 @@ func parseTracks(lang string) ([]models.Track, error) {
 	return tracks, err
 }
 
-func parseStories(lang string) ([]models.Story, error) {
+func parseStories() ([]models.Story, error) {
 	stories := make([]models.Story, 0)
 
 	if _, err := os.Stat("stories"); os.IsNotExist(err) {
@@ -149,7 +149,7 @@ func parseStories(lang string) ([]models.Story, error) {
 		os.Chdir(path)
 
 		var story models.Story
-		err = story.Parse(lang)
+		err = story.Pars-e()
 
 		stories = append(stories, story)
 		os.Chdir("../..")

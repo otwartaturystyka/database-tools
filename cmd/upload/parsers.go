@@ -11,7 +11,7 @@ import (
 )
 
 // ParseMeta parses metadata for the generated datafile of ID regionID.
-func parseMeta(regionID string, lang string) (*models.Meta, error) {
+func parseMeta(regionID string) (*models.Meta, error) {
 	datafilePath := filepath.Join("generated", regionID)
 
 	if err := os.Chdir(datafilePath); err != nil {

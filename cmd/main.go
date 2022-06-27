@@ -28,11 +28,6 @@ var generateCommand = cli.Command{
 			Aliases: []string{"id"},
 			Usage:   "region whose data directory will be generated",
 		},
-		&cli.StringFlag{
-			Name:    "language",
-			Aliases: []string{"lang"},
-			Usage:   "language of the generated directory",
-		},
 		&cli.IntFlag{
 			Name:    "quality",
 			Aliases: []string{"q"},
@@ -47,7 +42,7 @@ var generateCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		regionID := c.String("region-id")
-		language := c.String("lang")
+
 		quality := models.Quality(c.Int("quality"))
 		verbose := c.Bool("verbose")
 
@@ -55,11 +50,7 @@ var generateCommand = cli.Command{
 			return fmt.Errorf("region id is empty")
 		}
 
-		if language == "" {
-			return fmt.Errorf("language is empty")
-		}
-
-		err := generate.Generate(regionID, language, quality, verbose)
+		err := generate.Generate(regionID, quality, verbose)
 		return err
 	},
 }
@@ -106,11 +97,7 @@ var uploadCommand = cli.Command{
 			Aliases: []string{"id"},
 			Usage:   "region whose zip archive will be uploaded",
 		},
-		&cli.StringFlag{
-			Name:    "language",
-			Aliases: []string{"lang"},
-			Usage:   "language of the zip archive that will be uploaded",
-		},
+
 		&cli.IntFlag{
 			Name:    "position",
 			Aliases: []string{"pos"},
@@ -127,7 +114,7 @@ var uploadCommand = cli.Command{
 	},
 	Action: func(c *cli.Context) error {
 		regionID := c.String("region-id")
-		language := c.String("language")
+
 		position := c.Int("position")
 		onlyMeta := c.Bool("only-meta")
 		prod := c.Bool("prod")
@@ -136,9 +123,6 @@ var uploadCommand = cli.Command{
 			return fmt.Errorf("region id is empty")
 		}
 
-		if language == "" {
-			return fmt.Errorf("language is empty")
-		}
 
 		if position == 0 {
 			return fmt.Errorf("position is 0")
@@ -149,7 +133,7 @@ var uploadCommand = cli.Command{
 			return fmt.Errorf("init firebase: %v", err)
 		}
 
-		err = upload.Upload(regionID, language, position, onlyMeta, prod)
+		err = upload.Upload(regionID, position, onlyMeta, prod)
 		if err != nil {
 			return fmt.Errorf("upload %s: %v", regionID, err)
 		}

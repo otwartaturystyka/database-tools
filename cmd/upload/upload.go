@@ -52,7 +52,7 @@ func InitFirebase() error {
 	return nil
 }
 
-func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool) error {
+func Upload(regionID string, position int, onlyMeta bool, prod bool) error {
 	zipFilePath := "compressed/" + regionID + ".zip"
 	zipFileInfo, err := os.Stat(zipFilePath)
 	if errors.Is(err, os.ErrNotExist) {
@@ -82,7 +82,7 @@ func Upload(regionID string, lang string, position int, onlyMeta bool, prod bool
 	}
 
 	fmt.Println("you are going to upload a data pack with the following metadata")
-	meta, err := parseMeta(regionID, lang)
+	meta, err := parseMeta(regionID)
 	if err != nil {
 		return fmt.Errorf("parse meta: %v", err)
 	}

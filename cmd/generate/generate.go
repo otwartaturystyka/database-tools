@@ -23,7 +23,7 @@ func init() {
 
 // Generate walks the database and copies files from it to the generated
 // directory.
-func Generate(regionID string, lang string, quality models.Quality, verbose bool) error {
+func Generate(regionID string, quality models.Quality, verbose bool) error {
 	var datafile models.Datafile
 
 	if regionID == "" {
@@ -39,27 +39,27 @@ func Generate(regionID string, lang string, quality models.Quality, verbose bool
 		return fmt.Errorf("chdir into datafile's directory: %v", err)
 	}
 
-	meta, err := parseMeta(lang)
+	meta, err := parseMeta()
 	if err != nil {
 		return fmt.Errorf("parse meta: %v", err)
 	}
 	datafile.Meta = meta
 	datafile.Meta.GeneratedAt = readers.CurrentTime() // Important!
 
-	sections, err := parseSections(lang, verbose)
+	sections, err := parseSections(verbose)
 	if err != nil {
 		return fmt.Errorf("parse sections: %v", err)
 	}
 	datafile.Sections = sections
 	datafile.Meta.PlaceCount = len(datafile.AllPlaces())
 
-	tracks, err := parseTracks(lang)
+	tracks, err := parseTracks()
 	if err != nil {
 		return fmt.Errorf("parse tracks: %v", err)
 	}
 	datafile.Tracks = tracks
 
-	stories, err := parseStories(lang)
+	stories, err := parseStories()
 	if err != nil {
 		return fmt.Errorf("parse stories: %v", err)
 	}

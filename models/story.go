@@ -22,7 +22,7 @@ type Story struct {
 // Parse parses story data from its directory and assigns
 // it to story pointed to by s. It must be used directly
 // in the tracks's directory.
-func (s *Story) Parse(lang string) error {
+func (s *Story) Parse() error {
 	name, err := readers.ReadFromFile(lang + "/name.txt")
 	if err != nil {
 		return err
