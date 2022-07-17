@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/readers"
 )
 
 // Story represents a longer piece of text about a particular topic.

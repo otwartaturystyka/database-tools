@@ -14,7 +14,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/readers"
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"

@@ -13,8 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bartekpacia/database-tools/models"
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/models"
+	"github.com/opentouristics/database-tools/readers"
 )
 
 func init() {

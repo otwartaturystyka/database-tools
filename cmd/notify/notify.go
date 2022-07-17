@@ -12,7 +12,7 @@ import (
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/readers"
 	"google.golang.org/api/option"
 )
 

@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/cmd/compress"
-	"github.com/bartekpacia/database-tools/cmd/generate"
-	"github.com/bartekpacia/database-tools/cmd/notify"
-	"github.com/bartekpacia/database-tools/cmd/optimize"
-	"github.com/bartekpacia/database-tools/cmd/upload"
-	"github.com/bartekpacia/database-tools/models"
+	"github.com/opentouristics/database-tools/cmd/compress"
+	"github.com/opentouristics/database-tools/cmd/generate"
+	"github.com/opentouristics/database-tools/cmd/notify"
+	"github.com/opentouristics/database-tools/cmd/optimize"
+	"github.com/opentouristics/database-tools/cmd/upload"
+	"github.com/opentouristics/database-tools/models"
 	"github.com/urfave/cli/v2"
 )
 
