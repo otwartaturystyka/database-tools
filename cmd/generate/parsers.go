@@ -35,7 +35,7 @@ func getCommitTag() (string, error) {
 func parseMeta() (meta models.Meta, err error) {
 	os.Chdir("meta")
 
-	err = meta.Parse(lang)
+	err = meta.Parse()
 	if err != nil {
 		err = fmt.Errorf("parse meta: %w", err)
 		return

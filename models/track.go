@@ -21,7 +21,7 @@ type Track struct {
 // it to track pointed to by t. It must be used directly
 // in the track's directory, usually by using os.Chdir().
 func (t *Track) Parse() error {
-	name, err := readers.ReadFromFile(lang + "/name.txt")
+	name, err := readers.ReadLocalized("name.txt")
 	if err != nil {
 		return err
 	}
