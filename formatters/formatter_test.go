@@ -3,7 +3,7 @@ package formatters_test
 import (
 	"testing"
 
-	"github.com/bartekpacia/database-tools/formatters"
+	"github.com/opentouristics/database-tools/formatters"
 )
 
 func TestToContent(t *testing.T) {

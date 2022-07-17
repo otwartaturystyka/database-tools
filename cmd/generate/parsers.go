@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bartekpacia/database-tools/models"
+	"github.com/opentouristics/database-tools/models"
 )
 
 func getCommitHash() (string, error) {

@@ -3,8 +3,8 @@ package models
 import (
 	"encoding/json"
 
-	"github.com/bartekpacia/database-tools/formatters"
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/formatters"
+	"github.com/opentouristics/database-tools/readers"
 )
 
 // Track represents a bike trail or some other "long" geographical object.

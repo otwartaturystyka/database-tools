@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bartekpacia/database-tools/models"
 	"github.com/bbrks/go-blurhash"
+	"github.com/opentouristics/database-tools/models"
 	"golang.org/x/image/webp"
 )
 

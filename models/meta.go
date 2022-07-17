@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/readers"
 )
 
 // Meta represents the JSON object in the beginning of data.json file.

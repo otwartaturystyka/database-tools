@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bartekpacia/database-tools/readers"
+	"github.com/opentouristics/database-tools/readers"
 )
 
 // Section represents places of similiar type and associated metadata.
