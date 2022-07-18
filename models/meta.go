@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/opentouristics/database-tools/readers"
@@ -52,7 +53,11 @@ func (m *Meta) Parse() error {
 	if err != nil {
 		return err
 	}
-	m.RegionName = name // FIXME: trim suffix "\n"
+
+	for k, v := range name {
+		name[k] = strings.TrimSuffix(v, "\n")
+	}
+	m.RegionName = name
 
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {

@@ -123,7 +123,6 @@ var uploadCommand = cli.Command{
 			return fmt.Errorf("region id is empty")
 		}
 
-
 		if position == 0 {
 			return fmt.Errorf("position is 0")
 		}
