@@ -8,8 +8,8 @@ type Action struct {
 
 // Location represents single a point in the real world.
 type Location struct {
-	Lat float32 `json:"lat"`
-	Lng float32 `json:"lng"`
+	Lat float32 `json:"lat" firestore:"lat"`
+	Lng float32 `json:"lng" firestore:"lng"`
 }
 
 type Link struct {

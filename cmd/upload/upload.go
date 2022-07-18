@@ -104,6 +104,8 @@ func Upload(regionID string, position int, onlyMeta bool, prod bool) error {
 		ThumbBlurhash: thumbBlurhash,
 		ThumbMiniURL:  thumbMiniLocation,
 		ThumbURL:      thumbLocation,
+		Center:        meta.Center,
+		Bounds:        meta.Bounds,
 	}
 
 	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")

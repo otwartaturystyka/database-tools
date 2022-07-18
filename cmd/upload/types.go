@@ -1,6 +1,10 @@
 package upload
 
-import "time"
+import (
+	"time"
+
+	"github.com/opentouristics/database-tools/models"
+)
 
 // FirestoreDatafile represents a document in datafiles collection in Firestore.
 type FirestoreDatafile struct {
@@ -13,11 +17,13 @@ type FirestoreDatafile struct {
 	UploadedAt    time.Time         `json:"uploadedAt" firestore:"uploadedAt"`
 	Position      int               `json:"position" firestore:"position"`
 	RegionID      string            `json:"regionID" firestore:"regionID"`
-	RegionName    map[string]string `json:"regionName" firestore:"regionName"`
+	RegionName    models.Text       `json:"regionName" firestore:"regionName"`
 	CommitHash    string            `json:"commitHash" firestore:"commitHash"`
 	CommitTag     *string           `json:"commitTag" firestore:"commitTag"`
 	IsTestVersion bool              `json:"isTestVersion" firestore:"isTestVersion"`
 	ThumbBlurhash string            `json:"thumbBlurhash" firestore:"thumbBlurhash"`
 	ThumbMiniURL  string            `json:"thumbMiniURL" firestore:"thumbMiniURL"`
 	ThumbURL      string            `json:"thumbURL" firestore:"thumbURL"`
+	Center        models.Location   `json:"center" firestore:"center"`
+	Bounds        []models.Location `json:"bounds" firestore:"bounds"`
 }

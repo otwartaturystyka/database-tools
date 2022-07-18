@@ -3,33 +3,38 @@ import sys
 import numpy as np
 from scipy.spatial import ConvexHull
 
+class NamedLocation:
+    def __init__(self, id: str, lng: float, lat: float):
+        self.id = id
+        self.lng = lng
+        self.lat = lat
+
 
 def augument(filepath: str):
     with open(filepath) as f:
         data = json.load(f)
 
-    places: list[tuple[str, float, float]] = []
+    places: list[NamedLocation] = []
     for section in data["sections"]:
         for place in section["places"]:
-            places.append((place["id"], place["lng"], place["lat"]))
+            places.append(NamedLocation(place["id"], lng=place["lng"], lat=place["lat"]))
 
-    coords = np.array([(lng, lat) for _, lng, lat in places])
+    coords = np.array([(place.lng, place.lat) for place in places])
     hull = ConvexHull(coords)
     center = coords.mean(0)
 
-    data["center"] = {"lng": round(center[0], 5), "lat": round(center[1], 5)}
+    data["meta"]["center"] = {"lng": round(center[0], 5), "lat": round(center[1], 5)}
 
     bounding_indices = np.unique(hull.simplices.flat)
 
-    data["bounds"] = []
+    data["meta"]["bounds"] = []
     bounding_places = [places[i] for i in bounding_indices]
     for _, place in enumerate(bounding_places):
-        lat = round(place[1], 5)
-        lng = round(place[2], 5)
-        data["bounds"].append({"id": place[0], "lng": lng, "lat": lat})
+        print(place.id, place.lat, place.lng)
+        data["meta"]["bounds"].append({"id": place.id, "lat": place.lat, "lng":  place.lng})
 
     # close the polygon
-    data["bounds"].append(data["bounds"][0])
+    data["meta"]["bounds"].append(data["meta"]["bounds"][0])
 
     return data
 
@@ -40,6 +45,6 @@ if __name__ == "__main__":
         augumented_json = augument(file)
         with open(file, "w") as f:
             json.dump(augumented_json, f, indent=4, ensure_ascii=False)
-    except:
-        print("No file specified")
+    except Exception as e:
+        print(f"erorr: {e}")
         sys.exit(1)

@@ -44,6 +44,9 @@ type Meta struct {
 
 	// Count of places in all sections.
 	PlaceCount int `json:"place_count"`
+
+	// Places that are on the edges.
+	Bounds []Location `json:"bounds"`
 }
 
 // Parse parses datafile's metadata and assigns it to meta struct pointed to by

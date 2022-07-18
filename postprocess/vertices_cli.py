@@ -28,4 +28,4 @@ bounding_indices = np.unique(hull.simplices.flat)
 
 bounding_places = [places[i] for i in bounding_indices]
 for i, place in enumerate(bounding_places):
-    print(f"vertex {i}, {place[0]}, {place[1]}, {place[2]}")
+    print(f"vertex {i}, {place[0]}, lat: {place[2]}, lng: {place[1]}")
