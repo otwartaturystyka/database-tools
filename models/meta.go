@@ -2,8 +2,7 @@ package models
 
 import (
 	"encoding/json"
-	"path/filepath"
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/opentouristics/database-tools/readers"
@@ -15,7 +14,7 @@ type Meta struct {
 	RegionID string `json:"region_id"`
 
 	// Full localized name of the datafile's region.
-	RegionName string `json:"region_name"`
+	RegionName Text `json:"region_name"`
 
 	// Center of the Region
 	Center Location `json:"center"`
@@ -48,12 +47,12 @@ type Meta struct {
 
 // Parse parses datafile's metadata and assigns it to meta struct pointed to by
 // m.
-func (m *Meta) Parse(lang string) error {
-	name, err := readers.ReadFromFile(filepath.Join(lang, "name.txt"))
+func (m *Meta) Parse() error {
+	name, err := readers.ReadLocalizedFiles("name.txt")
 	if err != nil {
 		return err
 	}
-	m.RegionName = strings.TrimSuffix(string(name), "\n")
+	m.RegionName = name // FIXME: trim suffix "\n"
 
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
@@ -62,7 +61,7 @@ func (m *Meta) Parse(lang string) error {
 
 	err = json.Unmarshal(data, &m)
 	if err != nil {
-		return err
+		return fmt.Errorf("unmarshal JSON: %v", err)
 	}
 
 	return nil

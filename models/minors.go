@@ -2,7 +2,7 @@ package models
 
 // Action usually represents a URL with a name.
 type Action struct {
-	Name  string `json:"name"`
+	Name  Text   `json:"name"`
 	Value string `json:"value"`
 }
 

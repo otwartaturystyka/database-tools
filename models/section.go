@@ -13,17 +13,17 @@ import (
 // Section represents places of similiar type and associated metadata.
 type Section struct {
 	ID        string  `json:"id"`
-	Name      string  `json:"name"`
+	Name      Text    `json:"name"`
 	Icon      string  `json:"icon"`
 	BgImage   string  `json:"background_image"`
-	QuickInfo string  `json:"quick_info"`
+	QuickInfo Text    `json:"quick_info"`
 	Places    []Place `json:"places"`
 }
 
 // Parse parses section data from its directory and assigns
 // it to section pointed to by s. It must be used directly
 // in the scetions's directory. It recursively parses places.
-func (section *Section) Parse(lang string, verbose bool) error {
+func (section *Section) Parse(verbose bool) error {
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
 		return err
@@ -33,21 +33,21 @@ func (section *Section) Parse(lang string, verbose bool) error {
 		return err
 	}
 
-	name, err := readers.ReadFromFile(filepath.Join("content", lang, "name.txt"))
+	name, err := readers.ReadLocalizedFiles("name.txt")
 	if err != nil {
 		return err
 	}
-	section.Name = string(name)
+	section.Name = name
 
-	quickInfo, err := readers.ReadFromFile(filepath.Join("content", lang, "quick_info.txt"))
+	quickInfo, err := readers.ReadLocalizedFiles("quick_info.txt")
 	if err != nil {
 		return err
 	}
-	section.QuickInfo = string(quickInfo)
+	section.QuickInfo = quickInfo
 
 	// Parse places.
 	places := make([]Place, 0, 50)
-	placesWalker := func(path string, info os.FileInfo, err error) error {
+	placesWalker := func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("start walk place %#v: %w", path, err)
 		}
@@ -60,7 +60,7 @@ func (section *Section) Parse(lang string, verbose bool) error {
 		os.Chdir(path)
 
 		var place Place
-		err = place.Parse(lang, verbose)
+		err = place.Parse(verbose)
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", path, err)
 		}

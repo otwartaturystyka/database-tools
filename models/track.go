@@ -10,9 +10,9 @@ import (
 // Track represents a bike trail or some other "long" geographical object.
 type Track struct {
 	ID        string     `json:"id"`
-	Name      string     `json:"name"`
-	QuickInfo string     `json:"quick_info"`
-	Overview  string     `json:"overview"`
+	Name      Text       `json:"name"`
+	QuickInfo Text       `json:"quick_info"`
+	Overview  Text       `json:"overview"`
 	Images    []string   `json:"images"`
 	Coords    []Location `json:"coords"`
 }
@@ -21,23 +21,23 @@ type Track struct {
 // it to track pointed to by t. It must be used directly
 // in the track's directory, usually by using os.Chdir().
 func (t *Track) Parse() error {
-	name, err := readers.ReadFromFile(lang + "/name.txt")
+	name, err := readers.ReadLocalizedFiles("name.txt")
 	if err != nil {
 		return err
 	}
-	t.Name = string(name)
+	t.Name = name
 
-	overview, err := readers.ReadFromFile(lang + "/overview.txt")
+	overview, err := readers.ReadLocalizedFiles("overview.txt")
 	if err != nil {
 		return err
 	}
-	t.Overview = formatters.ToContent(string(overview))
+	t.Overview = formatters.ToContent(overview)
 
-	quickInfo, err := readers.ReadFromFile(lang + "/quick_info.txt")
+	quickInfo, err := readers.ReadLocalizedFiles("quick_info.txt")
 	if err != nil {
 		return err
 	}
-	t.QuickInfo = formatters.ToContent(string(quickInfo))
+	t.QuickInfo = formatters.ToContent(quickInfo)
 
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
