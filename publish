@@ -2,19 +2,20 @@
 set -euo pipefail
 
 region_id="${1:-}"
-language="${2:-}"
-position="${3:-}"
-prod="${4:-}"
+position="${2:-}"
+prod="${3:-}"
 
-if [ -z "$region_id" ] || [ -z "$language" ] || [ -z "$position" ]; then
-  echo "Usage: publish <region_id> <language> <position> [--prod]"
+if [ -z "$region_id" ] || [ -z "$position" ]; then
+  echo "Usage: publish <region_id> <position> [--prod]"
   exit 1
 fi
 
-echo "region_id: $region_id, language: $language, position: $position"
+echo "region_id: $region_id position: $position"
 
-./touristdb generate -id "$region_id" --language "$language" -v
+./touristdb generate -id "$region_id" -v
+
+python postprocess/vertices.py generated/"$region_id"/data.json
 
 ./touristdb compress -id "$region_id" --verbose
 
-echo "y" | ./touristdb upload -id "$region_id" --language "$language" --position "$position"  "$prod"
+echo "y" | ./touristdb upload -id "$region_id" --position "$position"  "$prod"
