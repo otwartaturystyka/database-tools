@@ -13,7 +13,8 @@ except:
 with open(f'generated/{region}/data.json') as f:
     data = json.load(f)
 
-prefix = 'https://otwartaturystyka.pl/regions/rudnik/places'
+# prefix = 'https://otwartaturystyka.pl/regions/rudnik/places/'
+prefix = ''
 
 gen_dir = f'generated_qrcodes/{region}'
 
@@ -23,9 +24,9 @@ if not os.path.exists(gen_dir):
 for section in data['sections']:
     for place in section['places']:
         id = place['id']
-        url = f'{prefix}/{id}'
+        url = f'{prefix}{id}'
         print(url)
                     
         img = qrcode.make(url)
-        img.save(f'{gen_dir}/{id}.png')
+        img.save(f'{gen_dir}{id}.png')
 
