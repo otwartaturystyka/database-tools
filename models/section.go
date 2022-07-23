@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/opentouristics/database-tools/formatters"
 	"github.com/opentouristics/database-tools/readers"
 )
 
@@ -37,13 +38,13 @@ func (section *Section) Parse(verbose bool) error {
 	if err != nil {
 		return err
 	}
-	section.Name = name
+	section.Name = formatters.ToContent(name)
 
 	quickInfo, err := readers.ReadLocalizedFiles("quick_info.txt")
 	if err != nil {
 		return err
 	}
-	section.QuickInfo = quickInfo
+	section.QuickInfo = formatters.ToContent(quickInfo)
 
 	// Parse places.
 	places := make([]Place, 0, 50)
