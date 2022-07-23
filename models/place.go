@@ -135,17 +135,27 @@ func (p *Place) makeActions(verbose bool) error {
 		return err
 	}
 
-	// Read action names from a valid language file
-	actionNames := make([]Text, 0)
-	for i := 0; i < len(actionValues); i++ {
-		actionFilePath := fmt.Sprintf("action_%d.txt", i)
-		text, err := readers.ReadLocalizedFiles(actionFilePath)
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				fmt.Printf("file %s of place %s does not exist (most probably, this means the translation is missing)\n", actionFilePath, p.ID)
-				break
-			}
+	// Read action name for every available language
+	entries, err := os.ReadDir("content/pl")
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %w", err)
+	}
 
+	actionNameFiles := make([]string, 0)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		if strings.HasPrefix(entry.Name(), "action_") {
+			actionNameFiles = append(actionNameFiles, entry.Name())
+		}
+	}
+
+	actionNames := make([]Text, 0)
+	for _, actionNameFile := range actionNameFiles {
+		text, err := readers.ReadLocalizedFiles(actionNameFile)
+		if err != nil {
 			return err
 		}
 
@@ -154,7 +164,6 @@ func (p *Place) makeActions(verbose bool) error {
 		}
 
 		actionNames = append(actionNames, text)
-
 	}
 
 	if len(actionValues) != len(actionNames) {
