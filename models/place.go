@@ -54,7 +54,7 @@ func (p *Place) Parse(verbose bool) error {
 	// Content
 	name, err := readers.ReadLocalizedFiles("name.txt")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read localized name: %v", err)
 	}
 	p.Name = formatters.ToContent(name)
 
@@ -73,24 +73,27 @@ func (p *Place) Parse(verbose bool) error {
 	// Headers and content
 	p.Headers = make([]Text, 0)
 	p.Content = make([]Text, 0)
-	for i := 0; true; i++ {
-		textFilePath := fmt.Sprintf("text_%d.txt", i)
-		text, err := readers.ReadLocalizedFiles(textFilePath)
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				if verbose {
-					fmt.Printf(
-						"file %s of place %s does not exist (most probably, "+
-							"this place does not have any content, so the file "+
-							"does not exist)\n",
-						textFilePath,
-						p.ID,
-					)
-				}
-				break
-			}
 
-			return fmt.Errorf("%w", err)
+	entries, err := os.ReadDir("content/pl")
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	textFiles := make([]string, 0)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		if strings.HasPrefix(entry.Name(), "text_") {
+			textFiles = append(textFiles, entry.Name())
+		}
+	}
+
+	for _, textFile := range textFiles {
+		text, err := readers.ReadLocalizedFiles(textFile)
+		if err != nil {
+			return err
 		}
 
 		header, content := formatters.ToSection(text)

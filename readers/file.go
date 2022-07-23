@@ -40,10 +40,22 @@ func ReadLocalizedFiles(filename string) (map[string]string, error) {
 		filepath := filepath.Join("content", lang, filename)
 		content, err := ReadFromFile(filepath)
 		if err != nil {
-			return nil, err
+			continue // it's okay
 		}
 
 		contents[lang] = string(content)
+	}
+
+	_, isEnglish := contents["en"]
+	_, isPolish := contents["pl"]
+
+	if !isEnglish && !isPolish {
+		fmt.Println("no english nor polish for", filename)
+		return nil, err
+	}
+
+	if _, ok := contents["pl"]; !ok {
+		return nil, fmt.Errorf("no pl translation for %s", filename)
 	}
 
 	return contents, nil
