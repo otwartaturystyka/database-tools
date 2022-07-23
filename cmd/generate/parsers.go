@@ -32,10 +32,10 @@ func getCommitTag() (string, error) {
 	return tag, nil
 }
 
-func parseMeta(lang string) (meta models.Meta, err error) {
+func parseMeta() (meta models.Meta, err error) {
 	os.Chdir("meta")
 
-	err = meta.Parse(lang)
+	err = meta.Parse()
 	if err != nil {
 		err = fmt.Errorf("parse meta: %w", err)
 		return
@@ -64,10 +64,10 @@ func parseMeta(lang string) (meta models.Meta, err error) {
 	return
 }
 
-func parseSections(lang string, verbose bool) ([]models.Section, error) {
+func parseSections(verbose bool) ([]models.Section, error) {
 	sections := make([]models.Section, 0)
 
-	walker := func(path string, info os.FileInfo, err error) error {
+	walker := func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("start walk section %s: %w", path, err)
 		}
@@ -80,7 +80,7 @@ func parseSections(lang string, verbose bool) ([]models.Section, error) {
 		os.Chdir(path)
 
 		var section models.Section
-		err = section.Parse(lang, verbose)
+		err = section.Parse(verbose)
 		if err != nil {
 			return fmt.Errorf("parse %s: %w", path, err)
 		}
@@ -97,14 +97,14 @@ func parseSections(lang string, verbose bool) ([]models.Section, error) {
 	return sections, err
 }
 
-func parseTracks(lang string) ([]models.Track, error) {
+func parseTracks() ([]models.Track, error) {
 	tracks := make([]models.Track, 0)
 
 	if _, err := os.Stat("tracks"); os.IsNotExist(err) {
 		return tracks, nil
 	}
 
-	walker := func(path string, info os.FileInfo, err error) error {
+	walker := func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("parse track %s: %w", path, err)
 		}
@@ -117,7 +117,7 @@ func parseTracks(lang string) ([]models.Track, error) {
 		os.Chdir(path)
 
 		var track models.Track
-		err = track.Parse(lang)
+		err = track.Parse()
 
 		tracks = append(tracks, track)
 		os.Chdir("../..")
@@ -129,14 +129,14 @@ func parseTracks(lang string) ([]models.Track, error) {
 	return tracks, err
 }
 
-func parseStories(lang string) ([]models.Story, error) {
+func parseStories() ([]models.Story, error) {
 	stories := make([]models.Story, 0)
 
 	if _, err := os.Stat("stories"); os.IsNotExist(err) {
 		return stories, nil
 	}
 
-	walker := func(path string, info os.FileInfo, err error) error {
+	walker := func(path string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("parse story %s: %w", path, err)
 		}
@@ -149,7 +149,7 @@ func parseStories(lang string) ([]models.Story, error) {
 		os.Chdir(path)
 
 		var story models.Story
-		err = story.Parse(lang)
+		err = story.Parse()
 
 		stories = append(stories, story)
 		os.Chdir("../..")

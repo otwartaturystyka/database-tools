@@ -2,14 +2,14 @@ package models
 
 // Action usually represents a URL with a name.
 type Action struct {
-	Name  string `json:"name"`
+	Name  Text   `json:"name"`
 	Value string `json:"value"`
 }
 
 // Location represents single a point in the real world.
 type Location struct {
-	Lat float32 `json:"lat"`
-	Lng float32 `json:"lng"`
+	Lat float32 `json:"lat" firestore:"lat"`
+	Lng float32 `json:"lng" firestore:"lng"`
 }
 
 type Link struct {

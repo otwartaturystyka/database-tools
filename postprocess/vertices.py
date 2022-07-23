@@ -1,31 +1,50 @@
 import json
 import sys
-
 import numpy as np
 from scipy.spatial import ConvexHull
 
-try:
-    file = sys.argv[1]
-except:
-    print("No file specified")
-    sys.exit(1)
+class NamedLocation:
+    def __init__(self, id: str, lng: float, lat: float):
+        self.id = id
+        self.lng = lng
+        self.lat = lat
 
-with open(file) as f:
-    data = json.load(f)
 
-places: list[tuple[str, float, float]] = []
-for section in data['sections']:
-    for place in section['places']:
-        places.append((place['id'], place['lng'], place['lat']))
+def augument(filepath: str):
+    with open(filepath) as f:
+        data = json.load(f)
 
-coords = np.array([(lng, lat) for _, lng, lat in places])
-hull = ConvexHull(coords)
-center = coords.mean(0)
+    places: list[NamedLocation] = []
+    for section in data["sections"]:
+        for place in section["places"]:
+            places.append(NamedLocation(place["id"], lng=place["lng"], lat=place["lat"]))
 
-print(f'center: {round(center[0], 5)}, {round(center[1], 5)}')
+    coords = np.array([(place.lng, place.lat) for place in places])
+    hull = ConvexHull(coords)
+    center = coords.mean(0)
 
-bounding_indices = np.unique(hull.simplices.flat)
+    data["meta"]["center"] = {"lng": round(center[0], 5), "lat": round(center[1], 5)}
 
-bounding_places = [places[i] for i in bounding_indices]
-for i, place in enumerate(bounding_places):
-    print(f'vertex {i}, {place[0]}, {place[1]}, {place[2]}')
+    bounding_indices = np.unique(hull.simplices.flat)
+
+    data["meta"]["bounds"] = []
+    bounding_places = [places[i] for i in bounding_indices]
+    for _, place in enumerate(bounding_places):
+        print(place.id, place.lat, place.lng)
+        data["meta"]["bounds"].append({"id": place.id, "lat": place.lat, "lng":  place.lng})
+
+    # close the polygon
+    data["meta"]["bounds"].append(data["meta"]["bounds"][0])
+
+    return data
+
+
+if __name__ == "__main__":
+    try:
+        file = sys.argv[1]
+        augumented_json = augument(file)
+        with open(file, "w") as f:
+            json.dump(augumented_json, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"erorr: {e}")
+        sys.exit(1)

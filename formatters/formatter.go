@@ -14,7 +14,16 @@ import "strings"
 // - Overview
 //
 // in sections, places and trails.
-func ToContent(text string) (formattedText string) {
+func ToContent(text map[string]string) map[string]string {
+	formattedText := make(map[string]string)
+	for lang, content := range text {
+		formattedText[lang] = toContent(content)
+	}
+
+	return formattedText
+}
+
+func toContent(text string) (formattedText string) {
 	chunks := strings.Split(text, "\n\n")
 
 	for i, chunk := range chunks {
@@ -35,7 +44,20 @@ func ToContent(text string) (formattedText string) {
 // ToSection reads a section (consisting of header and content) from r.
 //
 // Used for sections (header + content)
-func ToSection(text string) (header string, content string) {
+func ToSection(text map[string]string) (map[string]string, map[string]string) {
+	header := make(map[string]string)
+	content := make(map[string]string)
+
+	for lang, value := range text {
+		h, s := toSection(value)
+		header[lang] = h
+		content[lang] = s
+	}
+
+	return header, content
+}
+
+func toSection(text string) (header string, content string) {
 	chunks := strings.Split(text, "\n\n")
 	header = chunks[0]
 
