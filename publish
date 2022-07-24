@@ -14,7 +14,7 @@ echo "region_id: $region_id position: $position"
 
 ./touristdb generate -id "$region_id" -v
 
-python postprocess/vertices.py generated/"$region_id"/data.json
+# python postprocess/vertices.py generated/"$region_id"/data.json
 
 ./touristdb compress -id "$region_id" --verbose
 
