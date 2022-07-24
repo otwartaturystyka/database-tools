@@ -25,7 +25,7 @@ func (t *Track) Parse() error {
 	if err != nil {
 		return err
 	}
-	t.Name = name
+	t.Name = formatters.ToContent(name)
 
 	overview, err := readers.ReadLocalizedFiles("overview.txt")
 	if err != nil {
