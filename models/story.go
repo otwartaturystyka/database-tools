@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/opentouristics/database-tools/formatters"
 	"github.com/opentouristics/database-tools/readers"
 )
 
@@ -27,7 +28,7 @@ func (s *Story) Parse() error {
 	if err != nil {
 		return err
 	}
-	s.Name = name
+	s.Name = formatters.ToContent(name)
 
 	data, err := readers.ReadFromFile("data.json")
 	if err != nil {
