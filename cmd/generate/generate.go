@@ -41,27 +41,27 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 
 	meta, err := parseMeta()
 	if err != nil {
-		return fmt.Errorf("parse meta: %v", err)
+		return fmt.Errorf("failed to parse meta: %v", err)
 	}
 	datafile.Meta = meta
 	datafile.Meta.GeneratedAt = readers.CurrentTime() // Important!
 
 	sections, err := parseSections(verbose)
 	if err != nil {
-		return fmt.Errorf("parse sections: %v", err)
+		return fmt.Errorf("failed to parse sections: %v", err)
 	}
 	datafile.Sections = sections
 	datafile.Meta.PlaceCount = len(datafile.AllPlaces())
 
 	tracks, err := parseTracks()
 	if err != nil {
-		return fmt.Errorf("parse tracks: %v", err)
+		return fmt.Errorf("failed to parse tracks: %v", err)
 	}
 	datafile.Tracks = tracks
 
 	stories, err := parseStories()
 	if err != nil {
-		return fmt.Errorf("parse stories: %v", err)
+		return fmt.Errorf("failed to parse stories: %v", err)
 	}
 	datafile.Stories = stories
 
@@ -70,19 +70,19 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 	log.Println("creating output dir...")
 	dataJSONFile, err := createOutputDir(regionID)
 	if err != nil {
-		return fmt.Errorf("create output directory: %v", err)
+		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
 	log.Println("marshalling datafile to JSON...")
 	data, err := json.MarshalIndent(datafile, "", "	")
 	if err != nil {
-		return fmt.Errorf("marshal datafile struct to JSON: %v", err)
+		return fmt.Errorf("failed to marshal datafile struct to JSON: %v", err)
 	}
 
 	log.Println("writing datafile json to a file...")
 	n, err := dataJSONFile.Write(data)
 	if err != nil {
-		return fmt.Errorf("write data to JSON file: %v", err)
+		return fmt.Errorf("failed to write data to JSON file: %v", err)
 	}
 
 	log.Printf("wrote %d KB to data.json file\n", n/1024)
@@ -92,13 +92,13 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 			for _, imagePath := range place.ImagePaths() {
 				_, err = copyImage(regionID, imagePath)
 				if err != nil {
-					return fmt.Errorf("copy image: %v", err)
+					return fmt.Errorf("failed to copy image: %v", err)
 				}
 
 				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
 					err = makeMiniIcon(regionID, imagePath)
 					if err != nil {
-						return fmt.Errorf("make mini icon at %s: %v", imagePath, err)
+						return fmt.Errorf("failed to make mini icon at %s: %v", imagePath, err)
 					}
 				}
 			}
@@ -110,13 +110,13 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 	for _, story := range stories {
 		_, err := copyMarkdown(regionID, story.MarkdownPath())
 		if err != nil {
-			return fmt.Errorf("copy markdown file for story %s: %v", story.ID, err)
+			return fmt.Errorf("failed to copy markdown file for story %s: %v", story.ID, err)
 		}
 
 		for _, path := range story.ImagePaths() {
 			_, err := copyImage(regionID, path)
 			if err != nil {
-				return fmt.Errorf("copy image for story %s: %v", story.ID, err)
+				return fmt.Errorf("failed to copy image for story %s: %v", story.ID, err)
 			}
 		}
 	}

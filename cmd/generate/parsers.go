@@ -150,6 +150,9 @@ func parseStories() ([]models.Story, error) {
 
 		var story models.Story
 		err = story.Parse()
+		if err != nil {
+			err = fmt.Errorf("parse story %s: %w", path, err)
+		}
 
 		stories = append(stories, story)
 		os.Chdir("../..")

@@ -31,7 +31,7 @@ func ReadFromFile(filepath string) ([]byte, error) {
 func ReadLocalizedFiles(filename string) (map[string]string, error) {
 	dirs, err := os.ReadDir("content")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read localized files: %v", err)
 	}
 
 	contents := make(map[string]string)
