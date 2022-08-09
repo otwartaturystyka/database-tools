@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	bucketName = "discoverrudy.appspot.com"
+	projectID  = "opentouristics"
+	bucketName = projectID + ".appspot.com"
 	appspotURL = "https://firebasestorage.googleapis.com/v0/b/" + bucketName + "/o/static"
 )
 
@@ -39,7 +40,7 @@ func InitFirebase() error {
 	opt := option.WithCredentialsFile("./key.json")
 
 	var err error
-	firestoreClient, err = firestore.NewClient(context.Background(), "discoverrudy", opt)
+	firestoreClient, err = firestore.NewClient(context.Background(), projectID, opt)
 	if err != nil {
 		return fmt.Errorf("initialize firestore: %v", err)
 	}
