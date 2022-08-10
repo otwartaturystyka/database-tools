@@ -8,7 +8,6 @@ import (
 
 	"github.com/opentouristics/database-tools/cmd/compress"
 	"github.com/opentouristics/database-tools/cmd/generate"
-	"github.com/opentouristics/database-tools/cmd/notify"
 	"github.com/opentouristics/database-tools/cmd/optimize"
 	"github.com/opentouristics/database-tools/cmd/upload"
 	"github.com/opentouristics/database-tools/models"
@@ -177,36 +176,6 @@ var optimizeCommand = cli.Command{
 	},
 }
 
-var notifyCommand = cli.Command{
-	Name:  "notify",
-	Usage: "send a push notification to app's users",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "region-id",
-			Aliases: []string{"id"},
-			Value:   "",
-			Usage:   "region whose users will be notified",
-		},
-		&cli.BoolFlag{
-			Name:    "verbose",
-			Aliases: []string{"v"},
-			Value:   false,
-			Usage:   "print extensive logs",
-		},
-	},
-	Action: func(c *cli.Context) error {
-		regionID := c.String("region-id")
-		verbose := c.Bool("verbose")
-
-		err := notify.Notify(regionID, verbose)
-		if err != nil {
-			return fmt.Errorf("notify: %v", err)
-		}
-
-		return nil
-	},
-}
-
 func main() {
 	app := &cli.App{
 		Name:  "touristdb",
@@ -216,7 +185,6 @@ func main() {
 			&compressCommand,
 			&uploadCommand,
 			&optimizeCommand,
-			&notifyCommand,
 		},
 		CommandNotFound: func(c *cli.Context, command string) {
 			log.Printf("invalid command '%s'. See 'touristdb --help'\n", command)
