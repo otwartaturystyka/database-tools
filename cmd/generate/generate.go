@@ -159,7 +159,7 @@ func copyFile(regionID string, srcPath string, subdir string) (int, error) {
 
 	src, err := os.Open(srcPath)
 	if err != nil {
-		return 0, fmt.Errorf("open src file at %s: %w", srcPath, err)
+		return 0, err
 	}
 
 	dstPath := filepath.Join(wd, "generated", regionID, subdir, filepath.Base(srcPath))
