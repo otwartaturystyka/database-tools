@@ -54,19 +54,19 @@ func (p *Place) Parse(verbose bool) error {
 	// Content
 	name, err := readers.ReadLocalizedFiles("name.txt")
 	if err != nil {
-		return fmt.Errorf("failed to read localized name: %v", err)
+		return fmt.Errorf("read localized name: %v", err)
 	}
 	p.Name = formatters.ToContent(name)
 
 	quickInfo, err := readers.ReadLocalizedFiles("quick_info.txt")
 	if err != nil {
-		return err
+		return fmt.Errorf("read localized quick info: %v", err)
 	}
 	p.QuickInfo = formatters.ToContent(quickInfo)
 
 	overview, err := readers.ReadLocalizedFiles("overview.txt")
 	if err != nil {
-		return err
+		return fmt.Errorf("read localized overview: %v", err)
 	}
 	p.Overview = formatters.ToContent(overview)
 

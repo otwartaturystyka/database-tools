@@ -40,6 +40,7 @@ func ReadLocalizedFiles(filename string) (map[string]string, error) {
 		filepath := filepath.Join("content", lang, filename)
 		content, err := ReadFromFile(filepath)
 		if err != nil {
+			fmt.Printf("error reading file: %v\n", err)
 			continue // it's okay
 		}
 
