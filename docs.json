@@ -1,0 +1,9 @@
+{
+  "name": "Otwarta Turystyka",
+  "theme": "#669900",
+  "sidebar": [
+    ["O projekcie", "/"],
+    ["Jak mogę pomóc?", "/contributing"],
+    ["Architektura systemu", "/architecture"]
+  ]
+}
