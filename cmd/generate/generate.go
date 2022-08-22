@@ -9,9 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/opentouristics/database-tools/models"
 	"github.com/opentouristics/database-tools/readers"
@@ -94,18 +92,9 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 				if err != nil {
 					return fmt.Errorf("failed to copy image: %v", err)
 				}
-
-				if strings.HasPrefix(filepath.Base(imagePath), "ic_") {
-					err = makeMiniIcon(regionID, imagePath)
-					if err != nil {
-						return fmt.Errorf("failed to make mini icon at %s: %v", imagePath, err)
-					}
-				}
 			}
 		}
 	}
-
-	log.Println("generated mini icons")
 
 	for _, story := range stories {
 		_, err := copyMarkdown(regionID, story.MarkdownPath())
@@ -119,23 +108,6 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 				return fmt.Errorf("failed to copy image for story %s: %v", story.ID, err)
 			}
 		}
-	}
-
-	return nil
-}
-
-func makeMiniIcon(regionID string, srcPath string) error {
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("get working dir: %w", err)
-	}
-
-	miniIconFilename := "mini_" + filepath.Base(srcPath)
-	dstPath := filepath.Join(wd, "generated", regionID, "images", miniIconFilename)
-	cmd := exec.Command("convert", srcPath, "-quality", "60%", "-resize", "128x128", dstPath)
-	err = cmd.Run()
-	if err != nil {
-		return fmt.Errorf("run ImageMagick on image at %s: %w", srcPath, err)
 	}
 
 	return nil
