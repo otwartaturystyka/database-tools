@@ -17,7 +17,7 @@ changelog:
 brews:
   - tap:
       owner: bartekpacia
-      name: database-tools
+      name: homebrew-tools
     folder: Formula
     homepage: "https://github.com/opentouristics/database-tools"
     description: "Tools to manage tourist database"
