@@ -18,3 +18,5 @@ key.json
 /generated
 /compressed
 /generated_qrcodes
+
+dist/
