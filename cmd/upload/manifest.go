@@ -6,8 +6,9 @@ import (
 	"github.com/opentouristics/database-tools/models"
 )
 
-// FirestoreDatafile represents a document in datafiles collection in Firestore.
-type FirestoreDatafile struct {
+// Manifest is a summary of the most important information about a datafile and
+// how to retrieve it.
+type Manifest struct {
 	Available     bool              `json:"available" firestore:"available"`
 	Featured      []string          `json:"featured" firestore:"featured"`
 	FileSize      int64             `json:"fileSize" firestore:"fileSize"`
