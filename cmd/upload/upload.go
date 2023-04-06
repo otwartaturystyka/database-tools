@@ -88,7 +88,7 @@ func Upload(regionID string, position int, onlyMeta bool, prod bool) error {
 		return fmt.Errorf("parse meta: %v", err)
 	}
 
-	datafileData := FirestoreDatafile{
+	manifest := Manifest{
 		Available:     true,
 		Featured:      meta.Featured,
 		FileSize:      zipFileInfo.Size(),
@@ -109,11 +109,11 @@ func Upload(regionID string, position int, onlyMeta bool, prod bool) error {
 		Bounds:        meta.Bounds,
 	}
 
-	datafileDataJSON, err := json.MarshalIndent(datafileData, "", "  ")
+	manifestJSON, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
-		return fmt.Errorf("marshal datafileData to JSON: %v", err)
+		return fmt.Errorf("marshal manifest to JSON: %v", err)
 	}
-	fmt.Println(string(datafileDataJSON))
+	fmt.Println(string(manifestJSON))
 
 	accepted, err := readers.AskForConfirmation(os.Stdin, os.Stdout, "upload: continue?", false)
 	if err != nil {
@@ -150,7 +150,7 @@ func Upload(regionID string, position int, onlyMeta bool, prod bool) error {
 
 	docRef := firestoreClient.Collection(datafilesCollection).Doc(regionID)
 	log.Printf("updating document at %s...\n", docRef.Path)
-	_, err = docRef.Set(context.Background(), datafileData)
+	_, err = docRef.Set(context.Background(), manifest)
 	if err != nil {
 		return fmt.Errorf("error updating document %#v in /datafiles: %v", regionID, err)
 	}

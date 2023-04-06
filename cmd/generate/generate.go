@@ -66,7 +66,7 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 	os.Chdir("../..")
 
 	log.Println("creating output dir...")
-	dataJSONFile, err := createOutputDir(regionID)
+	outputDirPath, err := createOutputDir(regionID)
 	if err != nil {
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
@@ -77,13 +77,39 @@ func Generate(regionID string, quality models.Quality, verbose bool) error {
 		return fmt.Errorf("failed to marshal datafile struct to JSON: %v", err)
 	}
 
-	log.Println("writing datafile json to a file...")
+	log.Println("creating file for datafile JSON contents...")
+	dataJSONFile, err := os.Create(filepath.Join(*outputDirPath, "data.json"))
+	if err != nil {
+		return fmt.Errorf("create dataJSONFile: %w", err)
+	}
+
+	log.Println("writing datafile JSON to a file...")
 	n, err := dataJSONFile.Write(data)
 	if err != nil {
 		return fmt.Errorf("failed to write data to JSON file: %v", err)
 	}
 
 	log.Printf("wrote %d KB to data.json file\n", n/1024)
+
+	log.Println("marshalling meta to JSON...")
+	data, err = json.MarshalIndent(meta, "", "	")
+	if err != nil {
+		return fmt.Errorf("failed to marshal datafile struct to JSON: %v", err)
+	}
+
+	log.Println("creating file for meta JSON contents...")
+	metaJSONFile, err := os.Create(filepath.Join(*outputDirPath, "meta.json"))
+	if err != nil {
+		return fmt.Errorf("create metaJSONFile: %w", err)
+	}
+
+	log.Println("writing meta JSON to file")
+	n, err = metaJSONFile.Write(data)
+	if err != nil {
+		return fmt.Errorf("failed to write meta JSON file: %v", err)
+	}
+
+	log.Printf("wrote %d KB to meta.json file\n", n/1024)
 
 	for _, section := range sections {
 		for _, place := range section.Places {
@@ -150,7 +176,7 @@ func copyFile(regionID string, srcPath string, subdir string) (int, error) {
 
 // CreateOutputDir creates a datafile directory structure inside generated/ in
 // project root.
-func createOutputDir(regionID string) (*os.File, error) {
+func createOutputDir(regionID string) (*string, error) {
 	generatedPath := "generated"
 	outputDirPath := filepath.Join(generatedPath, regionID)
 
@@ -189,11 +215,5 @@ func createOutputDir(regionID string) (*os.File, error) {
 		return nil, fmt.Errorf("make dir %#v (for stories): %w", storiesDirPath, err)
 	}
 
-	dataJSONPath := filepath.Join(outputDirPath, "data.json")
-	dataJSONFile, err := os.Create(dataJSONPath)
-	if err != nil {
-		return nil, fmt.Errorf("create file %#v (the main json file): %w", dataJSONPath, err)
-	}
-
-	return dataJSONFile, nil
+	return &outputDirPath, nil
 }
