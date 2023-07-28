@@ -3,27 +3,26 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   main:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Clone repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.19
-          cache: true
+          go-version-file: go.mod
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
-          args: release --rm-dist
+          args: release
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
