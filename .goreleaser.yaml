@@ -1,9 +1,7 @@
-before:
-  hooks:
-    # You may remove this if you don't use go modules.
-    - go mod tidy
 builds:
-  - binary: touristdb
+  - id: touristdb
+    binary: touristdb
+    main: ./cmd
     goos:
       - windows
       - linux
@@ -12,12 +10,27 @@ builds:
       - amd64
       - arm64
 
+archives:
+  - id: touristdb
+    name_template: 'touristdb_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    builds:
+      - touristdb
+    files:
+      - README.md
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+
 changelog:
   skip: true
 brews:
-  - tap:
+  - name: database-tools
+    ids:
+      - touristdb
+    repository:
       owner: bartekpacia
       name: homebrew-tools
     folder: Formula
-    homepage: "https://github.com/opentouristics/database-tools"
-    description: "Tools to manage tourist database"
+    homepage: https://github.com/otwartaturystyka/database-tools
+    description: Tools to manage tourist database
