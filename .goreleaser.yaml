@@ -3,7 +3,6 @@ builds:
     binary: touristdb
     main: ./cmd
     goos:
-      - windows
       - linux
       - darwin
     goarch:
@@ -18,9 +17,6 @@ archives:
     files:
       - README.md
     wrap_in_directory: true
-    format_overrides:
-      - goos: windows
-        format: zip
 
 changelog:
   skip: true
