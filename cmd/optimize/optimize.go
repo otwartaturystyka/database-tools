@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/adrium/goheif"
+	"github.com/jdeng/goheif"
 )
 
 // Optimize creates optimized versions of images from images in the place's

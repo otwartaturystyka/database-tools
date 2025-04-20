@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/firestore v1.18.0
 	cloud.google.com/go/storage v1.51.0
 	github.com/bbrks/go-blurhash v1.1.1
+	github.com/jdeng/goheif v0.0.0-20241115163857-e2bbb197c985
 	github.com/urfave/cli/v2 v2.27.6
 	golang.org/x/image v0.26.0
 	google.golang.org/api v0.229.0
@@ -25,7 +26,6 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.27.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.51.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.51.0 // indirect
-	github.com/adrium/goheif v0.0.0-20230113233934-ca402e77a786
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250326154945-ae57f3c0d45f // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
@@ -41,7 +41,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.14.1 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.35.0 // indirect
