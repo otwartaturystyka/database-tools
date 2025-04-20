@@ -15,7 +15,6 @@ import (
 type Section struct {
 	ID        string  `json:"id"`
 	Name      Text    `json:"name"`
-	Icon      string  `json:"icon"`
 	BgImage   string  `json:"background_image"`
 	QuickInfo Text    `json:"quick_info"`
 	Places    []Place `json:"places"`
