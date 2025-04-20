@@ -1,3 +1,5 @@
+version: 2
+
 builds:
   - id: touristdb
     binary: touristdb
@@ -15,14 +17,15 @@ builds:
 archives:
   - id: touristdb
     name_template: 'touristdb_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
-    builds:
+    ids:
       - touristdb
     files:
       - README.md
     wrap_in_directory: true
 
 changelog:
-  skip: true
+  disable: true
+
 brews:
   - name: database-tools
     ids:
@@ -30,6 +33,6 @@ brews:
     repository:
       owner: bartekpacia
       name: homebrew-tools
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/otwartaturystyka/database-tools
     description: Tools to manage tourist database
