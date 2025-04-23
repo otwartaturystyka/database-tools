@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from scipy.spatial import ConvexHull
 
+
 class NamedLocation:
     def __init__(self, id: str, lng: float, lat: float):
         self.id = id
@@ -10,9 +11,9 @@ class NamedLocation:
         self.lat = lat
 
 
-def augument(filepath: str):
-    with open(filepath) as f:
-        data = json.load(f)
+def augment(filepath: str):
+    with open(filepath) as fl:
+        data = json.load(fl)
 
     places: list[NamedLocation] = []
     for section in data["sections"]:
@@ -31,7 +32,7 @@ def augument(filepath: str):
     bounding_places = [places[i] for i in bounding_indices]
     for _, place in enumerate(bounding_places):
         print(place.id, place.lat, place.lng)
-        data["meta"]["bounds"].append({"id": place.id, "lat": place.lat, "lng":  place.lng})
+        data["meta"]["bounds"].append({"id": place.id, "lat": place.lat, "lng": place.lng})
 
     # close the polygon
     data["meta"]["bounds"].append(data["meta"]["bounds"][0])
@@ -42,9 +43,9 @@ def augument(filepath: str):
 if __name__ == "__main__":
     try:
         file = sys.argv[1]
-        augumented_json = augument(file)
+        augmented_json = augment(file)
         with open(file, "w") as f:
-            json.dump(augumented_json, f, indent=4, ensure_ascii=False)
+            json.dump(augmented_json, f, indent=4, ensure_ascii=False)
     except Exception as e:
-        print(f"erorr: {e}")
+        print(f"error: {e}")
         sys.exit(1)

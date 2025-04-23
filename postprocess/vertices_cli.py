@@ -6,7 +6,7 @@ from scipy.spatial import ConvexHull
 
 try:
     file = sys.argv[1]
-except:
+except IndexError:
     print("No file specified")
     sys.exit(1)
 
