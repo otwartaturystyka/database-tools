@@ -1,0 +1,17 @@
+{
+  
+  "name": "extra-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "type": "module",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@notionhq/client": "^4.0.1"
+  }
+}
